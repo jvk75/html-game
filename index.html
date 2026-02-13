@@ -1,0 +1,1715 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Infinite Platformer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-0: #0a111f;
+      --bg-1: #13223d;
+      --bg-2: #1b2f52;
+      --ink: #f4f3ed;
+      --accent: #ff9e4f;
+      --accent-2: #53f2ff;
+      --panel: #0f1c34aa;
+      --line: #ffffff2e;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 500px at 10% -20%, #26478088, transparent 70%),
+        radial-gradient(700px 380px at 90% -10%, #2a5468aa, transparent 70%),
+        linear-gradient(170deg, var(--bg-1), var(--bg-0) 60%, #05080f);
+      font-family: "IBM Plex Mono", monospace;
+    }
+
+    #game {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+
+    .hud {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 2;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      backdrop-filter: blur(6px);
+      max-width: min(94vw, 520px);
+      box-shadow: 0 8px 34px #00000045;
+    }
+
+    .title {
+      margin: 0 0 8px;
+      font: 800 20px/1 "Syne", sans-serif;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: auto auto;
+      gap: 4px 14px;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .controls {
+      margin: 0;
+      font-size: 12px;
+      opacity: 0.88;
+      line-height: 1.45;
+    }
+
+    .tag {
+      color: var(--accent-2);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <section class="hud" aria-live="polite">
+    <h1 class="title">Neon Run</h1>
+    <div class="stats">
+      <span>Distance</span><span id="distance">0 m</span>
+      <span>Score</span><span id="score">0</span>
+      <span>Speed</span><span id="speed">0</span>
+      <span>Coins</span><span id="coins">0</span>
+      <span>Combo</span><span id="combo">x1.0</span>
+      <span>Lives</span><span id="lives">5</span>
+      <span>Biome</span><span id="biome">Aether</span>
+      <span>Powers</span><span id="powers">-</span>
+      <span>Input</span><span id="input" class="tag">Keyboard</span>
+    </div>
+    <p class="controls">
+      Move: A/D or Left/Right<br />
+      Jump: W, Up, or Space (double jump base)<br />
+      Dash: Shift/F (or RB/X on controller)<br />
+      Controller: Left Stick / D-Pad + A<br />
+      Fall 3 times = game over, then restart
+    </p>
+  </section>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById("game");
+      const ctx = canvas.getContext("2d");
+      const distanceEl = document.getElementById("distance");
+      const scoreEl = document.getElementById("score");
+      const speedEl = document.getElementById("speed");
+      const coinsEl = document.getElementById("coins");
+      const comboEl = document.getElementById("combo");
+      const livesEl = document.getElementById("lives");
+      const biomeEl = document.getElementById("biome");
+      const powersEl = document.getElementById("powers");
+      const inputEl = document.getElementById("input");
+
+      const world = {
+        gravity: 2200,
+        chunkWidth: 1250,
+        minY: 220,
+        maxY: 560,
+        biomeSpanMeters: 500
+      };
+
+      const biomes = [
+        {
+          name: "Aether",
+          skyTop: "#15365f",
+          skyMid: "#0f2444",
+          skyBot: "#081224",
+          hill1: "#1f3d67",
+          hill2: "#193152",
+          hill3: "#122642",
+          star: "#b7e6ff",
+          accent: "#7be7ff",
+          platform: [42, 72, 122],
+          hazard: "#ff7f6e",
+          drone: "#94eeff",
+          music: [164.81, 246.94],
+          gapMul: 1,
+          movingChance: 0.15,
+          fallingChance: 0.07,
+          spikeChance: 0.1,
+          droneChance: 0.07,
+          powerChance: 0.09,
+          runBoost: 0
+        },
+        {
+          name: "Ember",
+          skyTop: "#4b2a23",
+          skyMid: "#311816",
+          skyBot: "#180909",
+          hill1: "#603129",
+          hill2: "#4a251f",
+          hill3: "#381b17",
+          star: "#ffc9aa",
+          accent: "#ffb16a",
+          platform: [112, 66, 42],
+          hazard: "#ff5858",
+          drone: "#ffc476",
+          music: [146.83, 220],
+          gapMul: 1.06,
+          movingChance: 0.1,
+          fallingChance: 0.13,
+          spikeChance: 0.16,
+          droneChance: 0.09,
+          powerChance: 0.1,
+          runBoost: 12
+        },
+        {
+          name: "Verdant",
+          skyTop: "#164233",
+          skyMid: "#112f26",
+          skyBot: "#071b16",
+          hill1: "#235042",
+          hill2: "#1b4035",
+          hill3: "#14332a",
+          star: "#c7ffe8",
+          accent: "#75ffc8",
+          platform: [49, 98, 76],
+          hazard: "#ffa37f",
+          drone: "#92ffd2",
+          music: [174.61, 261.63],
+          gapMul: 0.96,
+          movingChance: 0.19,
+          fallingChance: 0.05,
+          spikeChance: 0.09,
+          droneChance: 0.12,
+          powerChance: 0.12,
+          runBoost: -6
+        },
+        {
+          name: "Chrome",
+          skyTop: "#2d324b",
+          skyMid: "#1d2237",
+          skyBot: "#0f1223",
+          hill1: "#3e4566",
+          hill2: "#2e3654",
+          hill3: "#212846",
+          star: "#d4dcff",
+          accent: "#9fd0ff",
+          platform: [74, 86, 126],
+          hazard: "#ff6c8f",
+          drone: "#b9d0ff",
+          music: [155.56, 233.08],
+          gapMul: 1.04,
+          movingChance: 0.2,
+          fallingChance: 0.11,
+          spikeChance: 0.13,
+          droneChance: 0.14,
+          powerChance: 0.09,
+          runBoost: 18
+        }
+      ];
+
+      const powerupColors = {
+        shield: "#7ce8ff",
+        magnet: "#ffdf75",
+        dash: "#ff9e7b",
+        triple: "#b7a0ff"
+      };
+
+      let width = 0;
+      let height = 0;
+      let dpr = 1;
+
+      const keys = new Set();
+      const jumpKeys = new Set(["Space", "ArrowUp", "KeyW"]);
+      const leftKeys = new Set(["ArrowLeft", "KeyA"]);
+      const rightKeys = new Set(["ArrowRight", "KeyD"]);
+      const dashKeys = new Set(["ShiftLeft", "ShiftRight", "KeyF"]);
+      const restartKeys = new Set(["KeyR", "Enter", "Space"]);
+      const blockedKeys = new Set(["Space", "ArrowUp", "ArrowLeft", "ArrowRight"]);
+
+      const player = {
+        x: 80,
+        y: 420,
+        w: 36,
+        h: 52,
+        vx: 0,
+        vy: 0,
+        onGround: false,
+        coyote: 0,
+        jumpBuffer: 0,
+        airJumpsLeft: 1,
+        facing: 1,
+        landSquash: 0
+      };
+
+      const camera = {
+        x: 0,
+        y: 0,
+        shakeX: 0,
+        shakeY: 0
+      };
+
+      const platforms = [];
+      const coins = [];
+      const spikes = [];
+      const enemies = [];
+      const projectiles = [];
+      const powerups = [];
+      const particles = [];
+
+      const maxLives = 5;
+      const scoreRules = {
+        coinBonus: 20,
+        lifeBonus: 250
+      };
+
+      let maxX = player.x;
+      let safePoint = { x: player.x, y: player.y };
+      let generatedUntil = 0;
+      let lastPlatformY = 500;
+
+      let lives = maxLives;
+      let gameOver = false;
+      let invulnTimer = 0;
+
+      let collectedCoins = 0;
+      let baseCoinScore = 0;
+      let comboBonusScore = 0;
+      let combatBonusScore = 0;
+      let totalScore = 0;
+      let comboCount = 0;
+      let comboTimer = 0;
+      let comboMultiplier = 1;
+
+      let shieldCharges = 0;
+      let magnetTimer = 0;
+      let tripleJumpTimer = 0;
+      let dashCharges = 0;
+      let dashCooldown = 0;
+
+      let hitStop = 0;
+      let shakeTime = 0;
+      let shakeStrength = 0;
+      let respawnControlLock = 0;
+
+      let lastInputMode = "Keyboard";
+      let prevJumpHeld = false;
+      let prevDashHeld = false;
+      let prevRestartHeld = false;
+      let lastFrame = performance.now();
+      let worldTime = 0;
+
+      let audioCtx = null;
+      let audioReady = false;
+      let audioLayerA = null;
+      let audioLayerB = null;
+      let audioGainA = null;
+      let audioGainB = null;
+      let audioMaster = null;
+
+      function mulberry32(seed) {
+        let t = seed >>> 0;
+        return function random() {
+          t += 0x6d2b79f5;
+          let r0 = Math.imul(t ^ (t >>> 15), t | 1);
+          r0 ^= r0 + Math.imul(r0 ^ (r0 >>> 7), r0 | 61);
+          return ((r0 ^ (r0 >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      const rand = mulberry32((Date.now() ^ 0xa5a5a5a5) >>> 0);
+
+      function r(min, max) {
+        return min + (max - min) * rand();
+      }
+
+      function ri(min, max) {
+        return Math.floor(r(min, max + 1));
+      }
+
+      function clamp(v, min, max) {
+        return Math.min(max, Math.max(min, v));
+      }
+
+      function hexToRgba(hex, alpha) {
+        const clean = hex.replace("#", "");
+        const num = parseInt(clean, 16);
+        const rr = (num >> 16) & 255;
+        const gg = (num >> 8) & 255;
+        const bb = num & 255;
+        return "rgba(" + rr + ", " + gg + ", " + bb + ", " + alpha + ")";
+      }
+
+      function distanceForX(x) {
+        return Math.max(0, (x - 80) / 10);
+      }
+
+      function difficultyForMeters(meters) {
+        return Math.min(1.8, meters / 1800);
+      }
+
+      function biomeIndexForX(x) {
+        const meters = distanceForX(x);
+        return Math.floor(meters / world.biomeSpanMeters) % biomes.length;
+      }
+
+      function biomeForX(x) {
+        return biomes[biomeIndexForX(x)];
+      }
+
+      function currentMaxAirJumps() {
+        return tripleJumpTimer > 0 ? 2 : 1;
+      }
+
+      function addShake(strength, duration = 0.18) {
+        shakeStrength = Math.max(shakeStrength, strength);
+        shakeTime = Math.max(shakeTime, duration);
+      }
+
+      function addHitStop(duration) {
+        hitStop = Math.max(hitStop, duration);
+      }
+
+      function worldToScreenX(x) {
+        return x - camera.x + camera.shakeX;
+      }
+
+      function worldToScreenY(y) {
+        return y - camera.y + camera.shakeY;
+      }
+
+      function platformColor(base, tone, mult = 1) {
+        const bump = Math.floor(tone * 50 * mult);
+        const rr = clamp(base[0] + bump, 0, 255);
+        const gg = clamp(base[1] + bump, 0, 255);
+        const bb = clamp(base[2] + bump, 0, 255);
+        return "rgb(" + rr + ", " + gg + ", " + bb + ")";
+      }
+
+      function resize() {
+        dpr = Math.min(2, window.devicePixelRatio || 1);
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+        canvas.style.width = width + "px";
+        canvas.style.height = height + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function tryInitAudio() {
+        if (audioReady) {
+          if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+          return;
+        }
+
+        try {
+          const AudioClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioClass) return;
+
+          audioCtx = new AudioClass();
+          audioMaster = audioCtx.createGain();
+          audioGainA = audioCtx.createGain();
+          audioGainB = audioCtx.createGain();
+          audioLayerA = audioCtx.createOscillator();
+          audioLayerB = audioCtx.createOscillator();
+
+          audioLayerA.type = "triangle";
+          audioLayerB.type = "sine";
+          audioLayerA.frequency.value = 160;
+          audioLayerB.frequency.value = 240;
+
+          audioGainA.gain.value = 0;
+          audioGainB.gain.value = 0;
+          audioMaster.gain.value = 0.06;
+
+          audioLayerA.connect(audioGainA);
+          audioLayerB.connect(audioGainB);
+          audioGainA.connect(audioMaster);
+          audioGainB.connect(audioMaster);
+          audioMaster.connect(audioCtx.destination);
+
+          audioLayerA.start();
+          audioLayerB.start();
+          audioReady = true;
+        } catch (err) {
+          audioReady = false;
+        }
+      }
+
+      function updateAudio(difficulty, biomeIndex) {
+        if (!audioReady || !audioCtx) return;
+        const now = audioCtx.currentTime;
+        const biome = biomes[biomeIndex];
+        const pulseA = 1 + Math.sin(worldTime * 1.8) * 0.03;
+        const pulseB = 1 + Math.sin(worldTime * 2.5 + 1.5) * 0.025;
+
+        const f1 = biome.music[0] * pulseA;
+        const f2 = biome.music[1] * pulseB;
+        const baseGain = gameOver ? 0.005 : 0.014 + difficulty * 0.007;
+
+        audioLayerA.frequency.setTargetAtTime(f1, now, 0.18);
+        audioLayerB.frequency.setTargetAtTime(f2, now, 0.18);
+        audioGainA.gain.setTargetAtTime(baseGain, now, 0.2);
+        audioGainB.gain.setTargetAtTime(gameOver ? 0 : baseGain * 0.75, now, 0.2);
+      }
+
+      function addPlatform(x, y, w, h = 20, tone = r(0.18, 0.42), biomeIndex = 0, forceType = null) {
+        const difficulty = difficultyForMeters(distanceForX(x));
+        const biome = biomes[biomeIndex];
+        let type = forceType || "static";
+
+        if (!forceType) {
+          const movingChance = biome.movingChance + difficulty * 0.05;
+          const fallingChance = biome.fallingChance + difficulty * 0.06;
+          const roll = rand();
+          if (w > 120 && roll < movingChance) type = "moving";
+          else if (w > 130 && roll < movingChance + fallingChance) type = "falling";
+        }
+
+        const p = {
+          x,
+          y,
+          w,
+          h,
+          tone,
+          biome: biomeIndex,
+          type,
+          vx: 0,
+          vy: 0,
+          baseX: x,
+          baseY: y,
+          phase: r(0, Math.PI * 2),
+          moveAmp: 0,
+          moveSpeed: 0,
+          state: "stable",
+          timer: 0,
+          fallVy: 0
+        };
+
+        if (type === "moving") {
+          p.moveAmp = r(20, 56);
+          p.moveSpeed = r(0.8, 1.45);
+        }
+
+        platforms.push(p);
+        return p;
+      }
+
+      function addCoin(x, y, radius = 10) {
+        coins.push({ x, y, r: radius, phase: r(0, Math.PI * 2) });
+      }
+
+      function addSpike(x, y, w, h, biomeIndex) {
+        spikes.push({ x, y, w, h, biome: biomeIndex });
+      }
+
+      function addEnemy(x, y, biomeIndex, difficulty) {
+        enemies.push({
+          x,
+          y,
+          r: 15,
+          biome: biomeIndex,
+          baseX: x,
+          baseY: y,
+          ampX: r(24, 78),
+          ampY: r(6, 20),
+          speed: r(1, 2.1),
+          phase: r(0, Math.PI * 2),
+          shootCd: r(1, 2.4),
+          shootRate: clamp(r(1.4, 2.3) - difficulty * 0.25, 0.8, 2.3)
+        });
+      }
+
+      function addPowerup(type, x, y) {
+        powerups.push({ type, x, y, r: 11, phase: r(0, Math.PI * 2) });
+      }
+
+      function spawnDust(x, y, color, count = 9, spread = 1) {
+        for (let i = 0; i < count; i += 1) {
+          particles.push({
+            x,
+            y,
+            vx: r(-190, 190) * spread,
+            vy: r(-260, -70) * spread,
+            size: r(2, 5),
+            life: r(0.25, 0.5),
+            maxLife: 0.5,
+            gravity: 900,
+            color
+          });
+        }
+      }
+
+      function spawnSparkBurst(x, y, color, count = 10) {
+        for (let i = 0; i < count; i += 1) {
+          particles.push({
+            x,
+            y,
+            vx: r(-280, 280),
+            vy: r(-280, 280),
+            size: r(1.6, 3.2),
+            life: r(0.18, 0.38),
+            maxLife: 0.38,
+            gravity: 420,
+            color
+          });
+        }
+      }
+
+      function maybeAddCoinsOnPlatform(p, difficulty) {
+        if (p.w < 96) return;
+        const chance = clamp(0.45 + difficulty * 0.07, 0.45, 0.78);
+        if (rand() > chance) return;
+
+        const pattern = rand();
+        if (pattern < 0.52) {
+          addCoin(p.x + r(24, p.w - 24), p.y - r(34, 62), 9);
+          return;
+        }
+
+        const count = pattern < 0.84 ? 3 : 5;
+        const span = Math.min(150, p.w - 30);
+        const start = p.x + (p.w - span) / 2 + r(-6, 6);
+        for (let i = 0; i < count; i += 1) {
+          const t = count === 1 ? 0.5 : i / (count - 1);
+          addCoin(start + span * t, p.y - 40 - Math.sin(t * Math.PI) * 16, 9);
+        }
+      }
+
+      function maybeAddSpikesOnPlatform(p, biome, difficulty) {
+        if (p.type !== "static" || p.w < 124) return;
+
+        const chance = clamp(biome.spikeChance + difficulty * 0.08, 0, 0.46);
+        if (rand() > chance) return;
+
+        const unit = 18;
+        const count = ri(2, Math.max(2, Math.min(8, Math.floor((p.w - 24) / unit))));
+        const blockWidth = count * unit;
+        const start = p.x + clamp(r(8, p.w - blockWidth - 8), 6, p.w - blockWidth - 6);
+        for (let i = 0; i < count; i += 1) {
+          addSpike(start + i * unit, p.y - 14, 16, 14, p.biome);
+        }
+      }
+
+      function maybeAddEnemyOnPlatform(p, biome, difficulty) {
+        if (p.w < 120) return;
+        const chance = clamp(biome.droneChance + difficulty * 0.05, 0, 0.35);
+        if (rand() > chance) return;
+
+        const ex = p.x + clamp(p.w * 0.5 + r(-24, 24), 30, p.w - 30);
+        const ey = p.y - r(84, 126);
+        addEnemy(ex, ey, p.biome, difficulty);
+      }
+
+      function maybeAddPowerupOnPlatform(p, biome) {
+        if (p.w < 110 || rand() > biome.powerChance) return;
+
+        const roll = rand();
+        let type = "shield";
+        if (roll < 0.25) type = "shield";
+        else if (roll < 0.5) type = "magnet";
+        else if (roll < 0.75) type = "dash";
+        else type = "triple";
+
+        addPowerup(type, p.x + r(24, p.w - 24), p.y - r(58, 80));
+      }
+
+      function decoratePlatform(p) {
+        const distance = distanceForX(p.x);
+        const difficulty = difficultyForMeters(distance);
+        const biome = biomes[p.biome];
+
+        maybeAddCoinsOnPlatform(p, difficulty);
+        if (distance > 80) {
+          maybeAddSpikesOnPlatform(p, biome, difficulty);
+          maybeAddEnemyOnPlatform(p, biome, difficulty);
+        }
+        if (distance > 30) {
+          maybeAddPowerupOnPlatform(p, biome);
+        }
+      }
+
+      function seedStart() {
+        const start = addPlatform(-300, 500, 950, 22, 0.3, 0, "static");
+        maybeAddCoinsOnPlatform(start, 0);
+        generatedUntil = 650;
+        lastPlatformY = 500;
+      }
+
+      function generateChunk(startX) {
+        let cursor = startX + ri(35, 110);
+        const end = startX + world.chunkWidth;
+
+        while (cursor < end) {
+          const biomeIndex = biomeIndexForX(cursor);
+          const biome = biomes[biomeIndex];
+          const meters = distanceForX(cursor);
+          const difficulty = difficultyForMeters(meters);
+
+          const gapMin = Math.floor((88 + difficulty * 22) * biome.gapMul);
+          const gapMax = Math.floor((170 + difficulty * 78) * biome.gapMul);
+          cursor += ri(gapMin, gapMax);
+
+          const widthMin = Math.max(112, 166 - Math.floor(difficulty * 34));
+          const widthMax = Math.max(widthMin + 24, 268 - Math.floor(difficulty * 58));
+          const mainWidth = ri(widthMin, widthMax);
+
+          const upRange = Math.floor(95 + difficulty * 34);
+          const downRange = Math.floor(90 + difficulty * 38);
+          lastPlatformY += ri(-upRange, downRange);
+          lastPlatformY = clamp(lastPlatformY, world.minY, world.maxY);
+
+          const main = addPlatform(cursor, lastPlatformY, mainWidth, 20, r(0.14, 0.52), biomeIndex);
+          decoratePlatform(main);
+
+          if (rand() < 0.34 + difficulty * 0.08) {
+            const upperW = ri(80, 140);
+            const upperX = cursor + ri(0, Math.max(12, mainWidth - upperW));
+            const upperY = clamp(lastPlatformY - ri(95, 145), world.minY - 30, world.maxY - 80);
+            const upper = addPlatform(upperX, upperY, upperW, 16, r(0.45, 0.68), biomeIndex, "static");
+            maybeAddCoinsOnPlatform(upper, difficulty * 0.8);
+            if (rand() < 0.22) maybeAddPowerupOnPlatform(upper, biome);
+          }
+
+          cursor += mainWidth;
+        }
+      }
+
+      function ensureWorldAhead() {
+        const target = player.x + width * 2.4;
+        while (generatedUntil < target) {
+          generateChunk(generatedUntil);
+          generatedUntil += world.chunkWidth;
+        }
+      }
+
+      function cullWorld() {
+        const left = camera.x - 900;
+        const right = player.x + width * 3.2;
+
+        for (let i = platforms.length - 1; i >= 0; i -= 1) {
+          const p = platforms[i];
+          if (p.x + p.w < left || p.x > right || p.y > height + 700) platforms.splice(i, 1);
+        }
+        for (let i = coins.length - 1; i >= 0; i -= 1) {
+          const c = coins[i];
+          if (c.x < left - 120 || c.x > right + 200 || c.y > height + 700) coins.splice(i, 1);
+        }
+        for (let i = spikes.length - 1; i >= 0; i -= 1) {
+          const s = spikes[i];
+          if (s.x + s.w < left - 100 || s.x > right + 100) spikes.splice(i, 1);
+        }
+        for (let i = enemies.length - 1; i >= 0; i -= 1) {
+          const e = enemies[i];
+          if (e.x < left - 200 || e.x > right + 250 || e.y > height + 400) enemies.splice(i, 1);
+        }
+        for (let i = projectiles.length - 1; i >= 0; i -= 1) {
+          const p = projectiles[i];
+          if (p.life <= 0 || p.x < left - 260 || p.x > right + 260 || p.y > height + 300 || p.y < -280) {
+            projectiles.splice(i, 1);
+          }
+        }
+        for (let i = powerups.length - 1; i >= 0; i -= 1) {
+          const p = powerups[i];
+          if (p.x < left - 120 || p.x > right + 180 || p.y > height + 400) powerups.splice(i, 1);
+        }
+        for (let i = particles.length - 1; i >= 0; i -= 1) {
+          if (particles[i].life <= 0) particles.splice(i, 1);
+        }
+      }
+
+      function getKeyboardMove() {
+        let move = 0;
+        for (const code of leftKeys) {
+          if (keys.has(code)) {
+            move -= 1;
+            break;
+          }
+        }
+        for (const code of rightKeys) {
+          if (keys.has(code)) {
+            move += 1;
+            break;
+          }
+        }
+        return clamp(move, -1, 1);
+      }
+
+      function getKeyboardJumpHeld() {
+        for (const code of jumpKeys) {
+          if (keys.has(code)) return true;
+        }
+        return false;
+      }
+
+      function getKeyboardDashHeld() {
+        for (const code of dashKeys) {
+          if (keys.has(code)) return true;
+        }
+        return false;
+      }
+
+      function getKeyboardRestartHeld() {
+        for (const code of restartKeys) {
+          if (keys.has(code)) return true;
+        }
+        return false;
+      }
+
+      function getGamepadInput() {
+        const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+        let gp = null;
+        for (let i = 0; i < pads.length; i += 1) {
+          if (pads[i]) {
+            gp = pads[i];
+            break;
+          }
+        }
+
+        if (!gp) {
+          return { active: false, move: 0, jumpHeld: false, dashHeld: false, restartHeld: false };
+        }
+
+        const axis = gp.axes[0] || 0;
+        const dead = 0.22;
+        let move = 0;
+        if (Math.abs(axis) > dead) move = axis;
+
+        const dpadLeft = gp.buttons[14] && gp.buttons[14].pressed;
+        const dpadRight = gp.buttons[15] && gp.buttons[15].pressed;
+        if (dpadLeft) move = -1;
+        if (dpadRight) move = 1;
+
+        const jumpHeld = Boolean(
+          (gp.buttons[0] && gp.buttons[0].pressed) ||
+          (gp.buttons[1] && gp.buttons[1].pressed) ||
+          (gp.buttons[12] && gp.buttons[12].pressed)
+        );
+
+        const dashHeld = Boolean(
+          (gp.buttons[5] && gp.buttons[5].pressed) ||
+          (gp.buttons[2] && gp.buttons[2].pressed)
+        );
+
+        const restartHeld = Boolean(
+          (gp.buttons[9] && gp.buttons[9].pressed) ||
+          (gp.buttons[0] && gp.buttons[0].pressed)
+        );
+
+        const active = Math.abs(move) > 0.08 || jumpHeld || dashHeld;
+        return { active, move: clamp(move, -1, 1), jumpHeld, dashHeld, restartHeld };
+      }
+
+      function getInput() {
+        const keyboardMove = getKeyboardMove();
+        const keyboardJump = getKeyboardJumpHeld();
+        const keyboardDash = getKeyboardDashHeld();
+        const keyboardRestart = getKeyboardRestartHeld();
+        const gp = getGamepadInput();
+
+        let move = keyboardMove;
+        let jumpHeld = keyboardJump;
+        let dashHeld = keyboardDash;
+        let restartHeld = keyboardRestart;
+
+        if (gp.active) {
+          if (Math.abs(gp.move) > Math.abs(move)) move = gp.move;
+          jumpHeld = jumpHeld || gp.jumpHeld;
+          dashHeld = dashHeld || gp.dashHeld;
+          lastInputMode = "Gamepad";
+        } else if (gp.restartHeld) {
+          lastInputMode = "Gamepad";
+        } else if (keyboardMove !== 0 || keyboardJump || keyboardDash) {
+          lastInputMode = "Keyboard";
+        }
+
+        restartHeld = restartHeld || gp.restartHeld;
+        return { move, jumpHeld, dashHeld, restartHeld };
+      }
+
+      function rectCircleOverlap(rx, ry, rw, rh, cx, cy, cr) {
+        const closestX = clamp(cx, rx, rx + rw);
+        const closestY = clamp(cy, ry, ry + rh);
+        const dx = cx - closestX;
+        const dy = cy - closestY;
+        return dx * dx + dy * dy <= cr * cr;
+      }
+
+      function resetFallingPlatforms(anchorX) {
+        const left = anchorX - width * 0.9;
+        const right = anchorX + width * 1.9;
+        for (let i = 0; i < platforms.length; i += 1) {
+          const p = platforms[i];
+          if (p.type !== "falling") continue;
+          if (p.baseX + p.w < left || p.baseX > right) continue;
+          p.x = p.baseX;
+          p.y = p.baseY;
+          p.vx = 0;
+          p.vy = 0;
+          p.state = "stable";
+          p.timer = 0;
+          p.fallVy = 0;
+        }
+      }
+
+      function respawnPlayer() {
+        resetFallingPlatforms(safePoint.x);
+        player.x = safePoint.x;
+        player.y = safePoint.y - 6;
+        player.vx = 0;
+        player.vy = 0;
+        player.onGround = false;
+        player.coyote = 0.1;
+        player.jumpBuffer = 0;
+        player.airJumpsLeft = currentMaxAirJumps();
+        invulnTimer = 1;
+        respawnControlLock = 0.22;
+      }
+
+      function loseLife({ allowShield = true, ignoreInvuln = false } = {}) {
+        if (gameOver) return;
+        if (!ignoreInvuln && invulnTimer > 0) return;
+
+        if (allowShield && shieldCharges > 0) {
+          shieldCharges -= 1;
+          invulnTimer = 0.36;
+          addShake(2.6, 0.12);
+          spawnSparkBurst(player.x + player.w * 0.5, player.y + player.h * 0.5, "#7ce8ff", 12);
+          return;
+        }
+
+        comboCount = 0;
+        comboTimer = 0;
+        comboMultiplier = 1;
+
+        lives = Math.max(0, lives - 1);
+        addShake(5, 0.22);
+        spawnSparkBurst(player.x + player.w * 0.5, player.y + player.h * 0.5, "#ff8a8a", 14);
+
+        if (lives <= 0) {
+          gameOver = true;
+          player.vx = 0;
+          player.vy = 0;
+          prevJumpHeld = false;
+          prevDashHeld = false;
+          return;
+        }
+
+        respawnPlayer();
+      }
+
+      function applyPowerup(type) {
+        if (type === "shield") {
+          shieldCharges = Math.min(3, shieldCharges + 1);
+        } else if (type === "magnet") {
+          magnetTimer = Math.max(magnetTimer, 12);
+        } else if (type === "dash") {
+          dashCharges = Math.min(8, dashCharges + 2);
+        } else if (type === "triple") {
+          tripleJumpTimer = Math.max(tripleJumpTimer, 12);
+          player.airJumpsLeft = Math.max(player.airJumpsLeft, 2);
+        }
+        combatBonusScore += 120;
+      }
+
+      function updatePlatforms(dt) {
+        for (let i = 0; i < platforms.length; i += 1) {
+          const p = platforms[i];
+          const oldX = p.x;
+          const oldY = p.y;
+
+          p.vx = 0;
+          p.vy = 0;
+
+          if (p.type === "moving") {
+            p.x = p.baseX + Math.sin(worldTime * p.moveSpeed + p.phase) * p.moveAmp;
+          } else if (p.type === "falling") {
+            if (p.state === "warning") {
+              p.timer -= dt;
+              if (p.timer <= 0) p.state = "falling";
+            }
+            if (p.state === "falling") {
+              p.fallVy += world.gravity * 0.85 * dt;
+              p.y += p.fallVy * dt;
+            }
+          }
+
+          p.vx = (p.x - oldX) / Math.max(dt, 0.001);
+          p.vy = (p.y - oldY) / Math.max(dt, 0.001);
+        }
+      }
+
+      function updateEnemies(dt, difficulty) {
+        for (let i = 0; i < enemies.length; i += 1) {
+          const e = enemies[i];
+          e.x = e.baseX + Math.sin(worldTime * e.speed + e.phase) * e.ampX;
+          e.y = e.baseY + Math.cos(worldTime * e.speed * 0.8 + e.phase) * e.ampY;
+          e.shootCd -= dt;
+
+          if (e.shootCd <= 0 && Math.abs(e.x - player.x) < 620 && Math.abs(e.y - player.y) < 300) {
+            e.shootCd = e.shootRate;
+            const dx = player.x + player.w * 0.5 - e.x;
+            const dy = player.y + player.h * 0.45 - e.y;
+            const len = Math.hypot(dx, dy) || 1;
+            const speed = 270 + difficulty * 85;
+
+            projectiles.push({
+              x: e.x,
+              y: e.y,
+              vx: (dx / len) * speed,
+              vy: (dy / len) * speed,
+              r: 5,
+              life: 4,
+              biome: e.biome
+            });
+          }
+        }
+      }
+
+      function updateProjectiles(dt) {
+        for (let i = 0; i < projectiles.length; i += 1) {
+          const p = projectiles[i];
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          p.life -= dt;
+        }
+      }
+
+      function updateParticles(dt) {
+        for (let i = 0; i < particles.length; i += 1) {
+          const p = particles[i];
+          p.vy += p.gravity * dt;
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          p.life -= dt;
+        }
+      }
+
+      function pullCoinsWithMagnet(dt) {
+        if (magnetTimer <= 0) return;
+
+        const px = player.x + player.w * 0.5;
+        const py = player.y + player.h * 0.44;
+        const radius = 240;
+
+        for (let i = 0; i < coins.length; i += 1) {
+          const c = coins[i];
+          const dx = px - c.x;
+          const dy = py - c.y;
+          const len = Math.hypot(dx, dy) || 1;
+          if (len > radius) continue;
+
+          const force = (1 - len / radius) * 640 + 140;
+          c.x += (dx / len) * force * dt;
+          c.y += (dy / len) * force * dt;
+        }
+      }
+
+      function collectCoin(cx, cy) {
+        collectedCoins += 1;
+        baseCoinScore += scoreRules.coinBonus;
+
+        if (comboTimer > 0) comboCount += 1;
+        else comboCount = 1;
+
+        comboTimer = 1.7;
+        comboMultiplier = 1 + Math.min(2.5, (comboCount - 1) * 0.3);
+        comboBonusScore += Math.floor(scoreRules.coinBonus * (comboMultiplier - 1));
+
+        addHitStop(0.018);
+        addShake(1.1, 0.07);
+        spawnSparkBurst(cx, cy, "#ffd868", 7);
+      }
+
+      function updateHUD(distanceMeters, biomeIndex) {
+        const distanceScore = Math.floor(distanceMeters);
+        const lifeBonus = lives * scoreRules.lifeBonus;
+        totalScore = distanceScore + baseCoinScore + comboBonusScore + combatBonusScore + lifeBonus;
+
+        const powerStates = [];
+        if (shieldCharges > 0) powerStates.push("Shield:" + shieldCharges);
+        if (magnetTimer > 0) powerStates.push("Magnet:" + Math.ceil(magnetTimer));
+        if (dashCharges > 0) powerStates.push("Dash:" + dashCharges);
+        if (tripleJumpTimer > 0) powerStates.push("Triple:" + Math.ceil(tripleJumpTimer));
+
+        distanceEl.textContent = Math.floor(Math.max(0, distanceMeters)) + " m";
+        scoreEl.textContent = String(totalScore);
+        speedEl.textContent = String(Math.floor(Math.abs(player.vx)));
+        coinsEl.textContent = String(collectedCoins);
+        comboEl.textContent = comboCount > 0 ? "x" + comboMultiplier.toFixed(1) : "x1.0";
+        livesEl.textContent = String(lives);
+        biomeEl.textContent = biomes[biomeIndex].name;
+        powersEl.textContent = powerStates.length ? powerStates.join(" | ") : "-";
+        inputEl.textContent = lastInputMode;
+      }
+
+      function resetGame() {
+        platforms.length = 0;
+        coins.length = 0;
+        spikes.length = 0;
+        enemies.length = 0;
+        projectiles.length = 0;
+        powerups.length = 0;
+        particles.length = 0;
+
+        maxX = player.x;
+        safePoint = { x: player.x, y: player.y };
+        generatedUntil = 0;
+        lastPlatformY = 500;
+
+        lives = maxLives;
+        gameOver = false;
+        invulnTimer = 0;
+
+        collectedCoins = 0;
+        baseCoinScore = 0;
+        comboBonusScore = 0;
+        combatBonusScore = 0;
+        totalScore = 0;
+        comboCount = 0;
+        comboTimer = 0;
+        comboMultiplier = 1;
+
+        shieldCharges = 0;
+        magnetTimer = 0;
+        tripleJumpTimer = 0;
+        dashCharges = 0;
+        dashCooldown = 0;
+
+        hitStop = 0;
+        shakeTime = 0;
+        shakeStrength = 0;
+        respawnControlLock = 0;
+
+        player.x = 80;
+        player.y = 420;
+        player.vx = 0;
+        player.vy = 0;
+        player.onGround = false;
+        player.coyote = 0.1;
+        player.jumpBuffer = 0;
+        player.airJumpsLeft = currentMaxAirJumps();
+        player.facing = 1;
+        player.landSquash = 0;
+
+        camera.x = 0;
+        camera.y = 0;
+        camera.shakeX = 0;
+        camera.shakeY = 0;
+
+        prevJumpHeld = false;
+        prevDashHeld = false;
+        prevRestartHeld = false;
+        worldTime = 0;
+
+        seedStart();
+        ensureWorldAhead();
+        updateHUD(0, 0);
+      }
+
+      function update(dt) {
+        const { move, jumpHeld, dashHeld, restartHeld } = getInput();
+        worldTime += dt;
+
+        const restartPressed = restartHeld && !prevRestartHeld;
+        prevRestartHeld = restartHeld;
+
+        const distanceNow = distanceForX(maxX);
+        const difficultyNow = difficultyForMeters(distanceNow);
+        const biomeIndexNow = biomeIndexForX(player.x);
+        updateAudio(difficultyNow, biomeIndexNow);
+
+        if (gameOver) {
+          if (restartPressed) resetGame();
+          updateHUD(distanceNow, biomeIndexNow);
+          return;
+        }
+
+        if (invulnTimer > 0) invulnTimer = Math.max(0, invulnTimer - dt);
+        if (respawnControlLock > 0) respawnControlLock = Math.max(0, respawnControlLock - dt);
+        if (dashCooldown > 0) dashCooldown = Math.max(0, dashCooldown - dt);
+        if (magnetTimer > 0) magnetTimer = Math.max(0, magnetTimer - dt);
+        if (tripleJumpTimer > 0) tripleJumpTimer = Math.max(0, tripleJumpTimer - dt);
+        if (comboTimer > 0) {
+          comboTimer = Math.max(0, comboTimer - dt);
+          if (comboTimer === 0) {
+            comboCount = 0;
+            comboMultiplier = 1;
+          }
+        }
+        if (player.landSquash > 0) player.landSquash = Math.max(0, player.landSquash - dt * 4.8);
+
+        updatePlatforms(dt);
+        updateEnemies(dt, difficultyNow);
+        updateProjectiles(dt);
+        updateParticles(dt);
+        pullCoinsWithMagnet(dt);
+
+        player.coyote = Math.max(0, player.coyote - dt);
+        player.jumpBuffer = Math.max(0, player.jumpBuffer - dt);
+
+        const jumpPressed = jumpHeld && !prevJumpHeld;
+        const dashPressed = dashHeld && !prevDashHeld;
+        const jumpReleased = !jumpHeld && prevJumpHeld;
+        prevJumpHeld = jumpHeld;
+        prevDashHeld = dashHeld;
+
+        const canMove = respawnControlLock <= 0;
+        const moveInput = canMove ? move : 0;
+        const canDash = canMove;
+
+        if (jumpPressed && (player.coyote > 0 || player.onGround)) {
+          player.vy = -820;
+          player.onGround = false;
+          player.coyote = 0;
+        } else if (jumpPressed && player.airJumpsLeft > 0) {
+          player.vy = -760;
+          player.airJumpsLeft -= 1;
+          spawnSparkBurst(player.x + player.w * 0.5, player.y + player.h, "#89f2ff", 6);
+        } else if (jumpPressed) {
+          player.jumpBuffer = 0.12;
+        }
+
+        if (dashPressed && canDash && dashCharges > 0 && dashCooldown <= 0) {
+          const dir = Math.abs(moveInput) > 0.14 ? Math.sign(moveInput) : player.facing;
+          player.vx = dir * (940 + difficultyNow * 60);
+          player.vy *= 0.45;
+          dashCharges -= 1;
+          dashCooldown = 0.44;
+          invulnTimer = Math.max(invulnTimer, 0.16);
+          addShake(2.8, 0.11);
+          spawnSparkBurst(player.x + player.w * 0.5, player.y + player.h * 0.5, "#ff9e7b", 9);
+        }
+
+        const activeBiome = biomeForX(player.x);
+        const runSpeed = 390 + difficultyNow * 130 + activeBiome.runBoost;
+        const targetSpeed = moveInput * runSpeed;
+        const accel = player.onGround ? 17 + difficultyNow * 1.2 : 8 + difficultyNow * 0.8;
+        player.vx += (targetSpeed - player.vx) * Math.min(1, dt * accel);
+
+        if (Math.abs(moveInput) < 0.01 && player.onGround) player.vx *= Math.pow(0.001, dt);
+        if (Math.abs(player.vx) > 2) player.facing = player.vx > 0 ? 1 : -1;
+
+        if (jumpReleased && player.vy < -250) player.vy = -250;
+
+        player.vy += (world.gravity + difficultyNow * 60) * dt;
+
+        const prevBottom = player.y + player.h;
+        const wasOnGround = player.onGround;
+        player.x += player.vx * dt;
+        player.y += player.vy * dt;
+        player.onGround = false;
+
+        let groundPlatform = null;
+        let landingSpeed = 0;
+
+        const nextBottom = player.y + player.h;
+        for (let i = 0; i < platforms.length; i += 1) {
+          const p = platforms[i];
+          if (p.state === "falling") continue;
+
+          const overlapX = player.x + player.w > p.x + 10 && player.x < p.x + p.w - 10;
+          if (!overlapX) continue;
+
+          if (player.vy >= 0 && prevBottom <= p.y && nextBottom >= p.y) {
+            landingSpeed = player.vy;
+            player.y = p.y - player.h;
+            player.vy = 0;
+            player.onGround = true;
+            groundPlatform = p;
+          }
+        }
+
+        if (player.onGround) {
+          if (groundPlatform) {
+            player.x += groundPlatform.vx * dt;
+            if (groundPlatform.type === "falling" && groundPlatform.state === "stable") {
+              groundPlatform.state = "warning";
+              groundPlatform.timer = 0.22;
+            }
+          }
+
+          player.coyote = 0.1;
+          player.airJumpsLeft = currentMaxAirJumps();
+
+          if (groundPlatform && groundPlatform.type === "static") {
+            const minSafeX = groundPlatform.x + 16;
+            const maxSafeX = groundPlatform.x + groundPlatform.w - player.w - 16;
+            let safeX = player.x;
+            if (maxSafeX > minSafeX) {
+              safeX = clamp(player.x, minSafeX, maxSafeX);
+            } else {
+              safeX = groundPlatform.x + (groundPlatform.w - player.w) * 0.5;
+            }
+            safePoint = { x: safeX, y: player.y };
+          }
+
+          if (player.jumpBuffer > 0) {
+            player.vy = -820;
+            player.onGround = false;
+            player.coyote = 0;
+            player.jumpBuffer = 0;
+          }
+
+          if (!wasOnGround && landingSpeed > 0) {
+            if (landingSpeed > 520) {
+              addShake(4.4, 0.16);
+              spawnDust(player.x + player.w * 0.5, player.y + player.h - 2, "#9ec8ff", 12, 1.2);
+            } else {
+              spawnDust(player.x + player.w * 0.5, player.y + player.h - 2, "#8ba8d4", 7, 0.8);
+            }
+            player.landSquash = clamp(landingSpeed / 1800, 0.08, 0.28);
+          }
+        }
+
+        const playerLeft = player.x;
+        const playerTop = player.y;
+        const playerRight = player.x + player.w;
+        const playerBottom = player.y + player.h;
+
+        for (let i = spikes.length - 1; i >= 0; i -= 1) {
+          const s = spikes[i];
+          if (playerRight > s.x && playerLeft < s.x + s.w && playerBottom > s.y && playerTop < s.y + s.h) {
+            loseLife({ allowShield: true });
+            break;
+          }
+        }
+
+        for (let i = enemies.length - 1; i >= 0; i -= 1) {
+          const e = enemies[i];
+          const hit = rectCircleOverlap(player.x, player.y, player.w, player.h, e.x, e.y, e.r + 4);
+          if (!hit) continue;
+
+          const enemyTop = e.y - e.r;
+          const playerCenterX = player.x + player.w * 0.5;
+          const descending = player.vy > 80;
+          const fromAbove = prevBottom <= enemyTop + 18;
+          const reachedTopZone = playerBottom >= enemyTop - 8;
+          const centeredAbove = playerCenterX > e.x - e.r * 1.2 && playerCenterX < e.x + e.r * 1.2;
+          const stomp = descending && fromAbove && reachedTopZone && centeredAbove;
+          if (stomp) {
+            enemies.splice(i, 1);
+            player.y = Math.min(player.y, enemyTop - player.h);
+            player.vy = -660;
+            combatBonusScore += 75;
+            addHitStop(0.028);
+            addShake(2.4, 0.1);
+            spawnSparkBurst(e.x, e.y, "#ffffff", 12);
+          } else {
+            loseLife({ allowShield: true });
+            break;
+          }
+        }
+
+        for (let i = projectiles.length - 1; i >= 0; i -= 1) {
+          const pr = projectiles[i];
+          if (rectCircleOverlap(player.x, player.y, player.w, player.h, pr.x, pr.y, pr.r + 1)) {
+            projectiles.splice(i, 1);
+            loseLife({ allowShield: true });
+            break;
+          }
+        }
+
+        for (let i = coins.length - 1; i >= 0; i -= 1) {
+          const coin = coins[i];
+          const bobY = coin.y + Math.sin(worldTime * 5 + coin.phase) * 5;
+          if (rectCircleOverlap(player.x, player.y, player.w, player.h, coin.x, bobY, coin.r + 1)) {
+            coins.splice(i, 1);
+            collectCoin(coin.x, bobY);
+          }
+        }
+
+        for (let i = powerups.length - 1; i >= 0; i -= 1) {
+          const pu = powerups[i];
+          const bobY = pu.y + Math.sin(worldTime * 4 + pu.phase) * 4;
+          if (rectCircleOverlap(player.x, player.y, player.w, player.h, pu.x, bobY, pu.r + 2)) {
+            powerups.splice(i, 1);
+            applyPowerup(pu.type);
+            addHitStop(0.042);
+            addShake(3, 0.13);
+            spawnSparkBurst(pu.x, bobY, powerupColors[pu.type], 14);
+          }
+        }
+
+        if (tripleJumpTimer <= 0 && player.airJumpsLeft > 1) {
+          player.airJumpsLeft = 1;
+        }
+
+        if (player.y > height + 320) {
+          loseLife({ allowShield: false, ignoreInvuln: true });
+        }
+
+        maxX = Math.max(maxX, player.x);
+        camera.x += (player.x - width * 0.34 - camera.x) * Math.min(1, dt * 5.2);
+        camera.y = 0;
+
+        if (shakeTime > 0) {
+          shakeTime -= dt;
+          camera.shakeX = r(-1, 1) * shakeStrength;
+          camera.shakeY = r(-1, 1) * shakeStrength * 0.6;
+          shakeStrength *= Math.pow(0.025, dt);
+        } else {
+          camera.shakeX = 0;
+          camera.shakeY = 0;
+        }
+
+        ensureWorldAhead();
+        cullWorld();
+
+        const meters = distanceForX(maxX);
+        const currentBiomeIndex = biomeIndexForX(player.x);
+        updateHUD(meters, currentBiomeIndex);
+      }
+
+      function drawBackground() {
+        const biome = biomeForX(player.x);
+
+        const sky = ctx.createLinearGradient(0, 0, 0, height);
+        sky.addColorStop(0, biome.skyTop);
+        sky.addColorStop(0.42, biome.skyMid);
+        sky.addColorStop(1, biome.skyBot);
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.globalAlpha = 0.6;
+        for (let i = 0; i < 70; i += 1) {
+          const px = ((i * 173 + 37 - camera.x * 0.08 + camera.shakeX * 0.2) % (width + 80)) - 40;
+          const py = (i * 67) % (height * 0.75);
+          ctx.fillStyle = i % 9 === 0 ? biome.star : "#ffffff";
+          ctx.fillRect(px, py, 2, 2);
+        }
+        ctx.globalAlpha = 1;
+
+        drawHills(0.12, height * 0.79, biome.hill1);
+        drawHills(0.24, height * 0.84, biome.hill2);
+        drawHills(0.42, height * 0.91, biome.hill3);
+      }
+
+      function drawHills(parallax, baseY, color) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(0, height);
+        for (let x = -90; x <= width + 90; x += 90) {
+          const wx = x + camera.x * parallax;
+          const y = baseY - Math.sin(wx * 0.0042) * 22 - Math.sin(wx * 0.0091) * 14;
+          ctx.lineTo(x, y);
+        }
+        ctx.lineTo(width, height);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      function drawPlatforms() {
+        for (let i = 0; i < platforms.length; i += 1) {
+          const p = platforms[i];
+          const sx = worldToScreenX(p.x);
+          const sy = worldToScreenY(p.y);
+          if (sx > width + 120 || sx + p.w < -120) continue;
+
+          const biome = biomes[p.biome];
+          let fill = platformColor(biome.platform, p.tone, 1);
+
+          if (p.type === "falling" && p.state === "warning") {
+            const pulse = (Math.sin(worldTime * 34) + 1) * 0.5;
+            fill = pulse > 0.45 ? "#ff8a6e" : fill;
+          }
+          if (p.type === "falling" && p.state === "falling") {
+            fill = platformColor(biome.platform, p.tone, 0.3);
+          }
+
+          ctx.fillStyle = fill;
+          ctx.fillRect(sx, sy, p.w, p.h);
+
+          ctx.fillStyle = biome.accent;
+          ctx.fillRect(sx, sy, p.w, 3);
+
+          if (p.type === "moving") {
+            ctx.fillStyle = "rgba(255, 255, 255, 0.26)";
+            ctx.fillRect(sx + 4, sy + 7, p.w - 8, 2);
+          }
+        }
+      }
+
+      function drawSpikes() {
+        for (let i = 0; i < spikes.length; i += 1) {
+          const s = spikes[i];
+          const sx = worldToScreenX(s.x);
+          const sy = worldToScreenY(s.y);
+          if (sx > width + 70 || sx + s.w < -70 || sy > height + 60) continue;
+
+          ctx.fillStyle = biomes[s.biome].hazard;
+          ctx.beginPath();
+          ctx.moveTo(sx, sy + s.h);
+          ctx.lineTo(sx + s.w * 0.5, sy);
+          ctx.lineTo(sx + s.w, sy + s.h);
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+
+      function drawPowerups() {
+        for (let i = 0; i < powerups.length; i += 1) {
+          const p = powerups[i];
+          const sx = worldToScreenX(p.x);
+          const sy = worldToScreenY(p.y + Math.sin(worldTime * 4 + p.phase) * 4);
+          if (sx < -40 || sx > width + 40 || sy < -40 || sy > height + 40) continue;
+
+          const color = powerupColors[p.type];
+          const glow = ctx.createRadialGradient(sx, sy, 0, sx, sy, p.r * 2.4);
+          glow.addColorStop(0, hexToRgba(color, 0.55));
+          glow.addColorStop(1, hexToRgba(color, 0));
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(sx, sy, p.r * 2.4, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(sx, sy, p.r, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.fillStyle = color;
+          ctx.font = "700 10px \"IBM Plex Mono\", monospace";
+          ctx.textAlign = "center";
+          const letter = p.type === "shield" ? "S" : p.type === "magnet" ? "M" : p.type === "dash" ? "D" : "3";
+          ctx.fillText(letter, sx, sy + 3.2);
+        }
+      }
+
+      function drawCoins() {
+        for (let i = 0; i < coins.length; i += 1) {
+          const coin = coins[i];
+          const sx = worldToScreenX(coin.x);
+          const sy = worldToScreenY(coin.y + Math.sin(worldTime * 5 + coin.phase) * 5);
+          if (sx < -40 || sx > width + 40 || sy < -40 || sy > height + 40) continue;
+
+          const glow = ctx.createRadialGradient(sx, sy, 1, sx, sy, coin.r * 2.2);
+          glow.addColorStop(0, "rgba(255, 216, 104, 0.45)");
+          glow.addColorStop(1, "rgba(255, 216, 104, 0)");
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(sx, sy, coin.r * 2.2, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#ffd868";
+          ctx.beginPath();
+          ctx.arc(sx, sy, coin.r, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#ffeaa8";
+          ctx.beginPath();
+          ctx.arc(sx - coin.r * 0.3, sy - coin.r * 0.3, coin.r * 0.33, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      function drawEnemies() {
+        for (let i = 0; i < enemies.length; i += 1) {
+          const e = enemies[i];
+          const sx = worldToScreenX(e.x);
+          const sy = worldToScreenY(e.y);
+          if (sx < -80 || sx > width + 80 || sy < -80 || sy > height + 80) continue;
+
+          const color = biomes[e.biome].drone;
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.arc(sx, sy, e.r, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#0e1528";
+          ctx.beginPath();
+          ctx.arc(sx + 4, sy - 2, 4, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = "rgba(255,255,255,0.35)";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(sx - e.r - 8, sy);
+          ctx.lineTo(sx + e.r + 8, sy);
+          ctx.stroke();
+        }
+      }
+
+      function drawProjectiles() {
+        for (let i = 0; i < projectiles.length; i += 1) {
+          const p = projectiles[i];
+          const sx = worldToScreenX(p.x);
+          const sy = worldToScreenY(p.y);
+          if (sx < -40 || sx > width + 40 || sy < -40 || sy > height + 40) continue;
+
+          ctx.fillStyle = biomes[p.biome].hazard;
+          ctx.beginPath();
+          ctx.arc(sx, sy, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      function drawParticles() {
+        for (let i = 0; i < particles.length; i += 1) {
+          const p = particles[i];
+          const alpha = clamp(p.life / p.maxLife, 0, 1);
+          if (alpha <= 0) continue;
+
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(worldToScreenX(p.x), worldToScreenY(p.y), p.size, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+      }
+
+      function roundRect(target, x, y, w, h, r0) {
+        const r1 = Math.min(r0, Math.min(w, h) / 2);
+        target.beginPath();
+        target.moveTo(x + r1, y);
+        target.arcTo(x + w, y, x + w, y + h, r1);
+        target.arcTo(x + w, y + h, x, y + h, r1);
+        target.arcTo(x, y + h, x, y, r1);
+        target.arcTo(x, y, x + w, y, r1);
+        target.closePath();
+      }
+
+      function drawPlayer() {
+        const sx = worldToScreenX(player.x);
+        const sy = worldToScreenY(player.y);
+
+        ctx.save();
+        ctx.translate(sx + player.w / 2, sy + player.h / 2);
+        const tilt = clamp(player.vx / 500, -0.12, 0.12);
+        ctx.rotate(tilt);
+
+        const stretch = clamp(Math.abs(player.vy) / 1250, 0, 0.22);
+        const squash = player.landSquash;
+        ctx.scale(1 + squash - stretch * 0.3, 1 - squash + stretch);
+
+        ctx.fillStyle = "#ff9e4f";
+        if (invulnTimer > 0 && Math.sin(worldTime * 30) > 0) ctx.fillStyle = "#ffd3aa";
+        roundRect(ctx, -player.w / 2, -player.h / 2, player.w, player.h, 10);
+        ctx.fill();
+
+        ctx.fillStyle = "#251307";
+        const eyeX = player.facing > 0 ? 6 : -10;
+        roundRect(ctx, eyeX, -8, 6, 6, 2);
+        ctx.fill();
+
+        ctx.restore();
+
+        if (!player.onGround) {
+          ctx.strokeStyle = "rgba(83, 242, 255, 0.4)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(sx + player.w / 2 - player.vx * 0.02, sy + player.h - 4);
+          ctx.lineTo(sx + player.w / 2, sy + player.h + 10);
+          ctx.stroke();
+        }
+
+        if (shieldCharges > 0) {
+          ctx.strokeStyle = "rgba(124, 232, 255, 0.7)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(sx + player.w * 0.5, sy + player.h * 0.5, 34 + Math.sin(worldTime * 8) * 2, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+
+      function render() {
+        drawBackground();
+        drawPlatforms();
+        drawSpikes();
+        drawPowerups();
+        drawCoins();
+        drawEnemies();
+        drawProjectiles();
+        drawParticles();
+        drawPlayer();
+
+        const biome = biomeForX(player.x);
+        const hazardY = height - 28;
+        const sea = ctx.createLinearGradient(0, hazardY - 30, 0, height);
+        sea.addColorStop(0, hexToRgba(biome.accent, 0));
+        sea.addColorStop(1, hexToRgba(biome.accent, 0.28));
+        ctx.fillStyle = sea;
+        ctx.fillRect(0, hazardY - 30, width, 60);
+
+        if (gameOver) {
+          ctx.fillStyle = "rgba(4, 10, 18, 0.72)";
+          ctx.fillRect(0, 0, width, height);
+
+          ctx.textAlign = "center";
+          ctx.fillStyle = "#ff9e4f";
+          ctx.font = "800 56px Syne, sans-serif";
+          ctx.fillText("GAME OVER", width / 2, height * 0.42);
+
+          ctx.fillStyle = "#f4f3ed";
+          ctx.font = "600 20px \"IBM Plex Mono\", monospace";
+          ctx.fillText("Press R / Enter / Space / Start to restart", width / 2, height * 0.5);
+
+          ctx.font = "600 16px \"IBM Plex Mono\", monospace";
+          ctx.fillText("Final score: " + totalScore, width / 2, height * 0.56);
+        }
+      }
+
+      function loop(now) {
+        const rawDt = Math.min(0.033, (now - lastFrame) / 1000 || 0.016);
+        lastFrame = now;
+
+        if (hitStop > 0) {
+          hitStop = Math.max(0, hitStop - rawDt);
+          render();
+          requestAnimationFrame(loop);
+          return;
+        }
+
+        update(rawDt);
+        render();
+        requestAnimationFrame(loop);
+      }
+
+      window.addEventListener("keydown", (e) => {
+        if (blockedKeys.has(e.code)) e.preventDefault();
+        tryInitAudio();
+        keys.add(e.code);
+      });
+
+      window.addEventListener("keyup", (e) => {
+        keys.delete(e.code);
+      });
+
+      window.addEventListener("blur", () => {
+        keys.clear();
+      });
+
+      window.addEventListener("gamepadconnected", () => {
+        lastInputMode = "Gamepad";
+      });
+
+      window.addEventListener("gamepaddisconnected", () => {
+        lastInputMode = "Keyboard";
+      });
+
+      window.addEventListener("resize", resize);
+      window.addEventListener("pointerdown", tryInitAudio, { once: true });
+
+      resize();
+      resetGame();
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>
