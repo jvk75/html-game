@@ -329,6 +329,7 @@
       let safePoint = { x: player.x, y: player.y };
       let generatedUntil = 0;
       let lastPlatformY = 500;
+      let generationCursor = 650;
 
       let lives = maxLives;
       let gameOver = false;
@@ -783,10 +784,11 @@
         maybeAddCoinsOnPlatform(start, 0);
         generatedUntil = 650;
         lastPlatformY = 500;
+        generationCursor = 650;
       }
 
       function generateChunk(startX) {
-        let cursor = startX + ri(35, 110);
+        let cursor = Math.max(generationCursor, startX);
         const end = startX + world.chunkWidth;
 
         while (cursor < end) {
@@ -795,16 +797,16 @@
           const meters = distanceForX(cursor);
           const difficulty = difficultyForMeters(meters);
 
-          const gapMin = Math.floor((70 + difficulty * 14) * biome.gapMul);
-          const gapMax = Math.floor((132 + difficulty * 46) * biome.gapMul);
+          const gapMin = Math.floor((46 + difficulty * 8) * biome.gapMul);
+          const gapMax = Math.floor((92 + difficulty * 24) * biome.gapMul);
           cursor += ri(gapMin, gapMax);
 
           const widthMin = Math.max(112, 166 - Math.floor(difficulty * 34));
           const widthMax = Math.max(widthMin + 24, 268 - Math.floor(difficulty * 58));
           const mainWidth = ri(widthMin, widthMax);
 
-          const upRange = Math.floor(95 + difficulty * 34);
-          const downRange = Math.floor(90 + difficulty * 38);
+          const upRange = Math.floor(68 + difficulty * 20);
+          const downRange = Math.floor(82 + difficulty * 26);
           lastPlatformY += ri(-upRange, downRange);
           lastPlatformY = clamp(lastPlatformY, world.minY, world.maxY);
 
@@ -824,6 +826,8 @@
 
           cursor += mainWidth;
         }
+
+        generationCursor = cursor;
       }
 
       function ensureWorldAhead() {
@@ -840,7 +844,7 @@
 
         for (let i = platforms.length - 1; i >= 0; i -= 1) {
           const p = platforms[i];
-          if (p.x + p.w < left || p.x > right || p.y > height + 700) platforms.splice(i, 1);
+          if (p.x + p.w < left || p.x > right) platforms.splice(i, 1);
         }
         for (let i = coins.length - 1; i >= 0; i -= 1) {
           const c = coins[i];
@@ -1230,6 +1234,7 @@
         safePoint = { x: player.x, y: player.y };
         generatedUntil = 0;
         lastPlatformY = 500;
+        generationCursor = 650;
 
         lives = maxLives;
         gameOver = false;
