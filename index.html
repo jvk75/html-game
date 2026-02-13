@@ -6,7 +6,7 @@
   <title>Infinite Platformer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg-0: #0a111f;
@@ -48,168 +48,133 @@
       inset: 0;
       z-index: 2;
       pointer-events: none;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      padding: 12px;
-      gap: 12px;
-    }
-
-    .ui-panel {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: linear-gradient(135deg, #0d1830d9, #0b162ac4 48%, #091224ba);
-      backdrop-filter: blur(8px);
-      box-shadow: 0 12px 36px #0000004a;
-      pointer-events: auto;
-      overflow: hidden;
+      padding: 8px;
     }
 
     .ui-header {
-      padding: 10px 12px;
-      display: grid;
-      grid-template-columns: minmax(160px, 250px) 1fr;
-      gap: 12px;
+      width: min(1120px, calc(100vw - 16px));
+      pointer-events: auto;
+      display: flex;
       align-items: stretch;
+      gap: 8px;
     }
 
-    .brand {
+    .hud-main {
+      flex: 1;
+      border: 3px solid #0a2c5b;
+      border-bottom-width: 5px;
+      background: linear-gradient(180deg, #2f9af0, #1b75ce 54%, #0f5eab);
+      box-shadow: 0 2px 0 #072346, inset 0 1px 0 #7fd0ff96;
+      display: grid;
+      grid-template-columns: clamp(240px, 30vw, 320px) repeat(5, minmax(96px, 1fr));
+      gap: 7px;
+      padding: 8px 9px;
+      image-rendering: pixelated;
+    }
+
+    .hud-title {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .hud-title-main {
+      font: 400 16px/1 "Press Start 2P", cursive;
+      letter-spacing: 0.03em;
+      color: #ffe56f;
+      text-shadow: 2px 2px 0 #1f2b58;
+    }
+
+    .hud-title-sub {
+      margin-top: 7px;
+      font: 600 10px/1 "IBM Plex Mono", monospace;
+      letter-spacing: 0.08em;
+      color: #d8f0ff;
+      text-shadow: 1px 1px 0 #1f2b58;
+    }
+
+    .hud-stat {
       display: flex;
       flex-direction: column;
       justify-content: center;
-      gap: 5px;
-      border-right: 1px solid #ffffff1f;
-      padding-right: 12px;
+      min-height: 44px;
+      border: 1px solid #063d74;
+      background: #0f3d74ba;
+      padding: 6px 8px;
     }
 
-    .brand-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .title {
-      margin: 0;
-      font: 800 clamp(18px, 2.4vw, 28px)/0.92 "Syne", sans-serif;
-      letter-spacing: 0.06em;
+    .hud-label {
+      font: 600 10px/1 "IBM Plex Mono", monospace;
       text-transform: uppercase;
-      color: #fff3df;
-      text-shadow: 0 2px 16px #00000065;
-    }
-
-    .subtitle {
-      margin: 0;
-      font-size: 11px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #9edbff;
+      letter-spacing: 0.08em;
+      color: #ccecff;
       opacity: 0.9;
     }
 
+    .hud-value {
+      margin-top: 4px;
+      font: 600 16px/1 "IBM Plex Mono", monospace;
+      color: #ffffff;
+      text-shadow: 1px 1px 0 #18305a;
+      white-space: nowrap;
+    }
+
     .info-btn {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      border: 1px solid #ffffff44;
-      background: linear-gradient(155deg, #1f3c66, #112645);
-      color: #f7f4e8;
-      font: 800 14px/1 "Syne", sans-serif;
+      min-width: 56px;
+      border: 3px solid #0a2c5b;
+      border-bottom-width: 5px;
+      background: linear-gradient(180deg, #ffe382, #ffbd38 56%, #e18e16);
+      color: #2b2334;
+      font: 700 14px/1 "Press Start 2P", cursive;
       cursor: pointer;
       pointer-events: auto;
-      box-shadow: 0 2px 12px #0000004f;
+      padding: 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
     .info-btn:hover {
-      background: linear-gradient(155deg, #244775, #16325a);
+      filter: brightness(1.05);
     }
 
     .info-btn[aria-expanded="true"] {
-      border-color: #86e7ff;
-      box-shadow: 0 0 0 2px #86e7ff2f, 0 2px 12px #0000004f;
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(8, minmax(74px, 1fr));
-      gap: 8px;
-      align-content: center;
-    }
-
-    .stat-card {
-      min-height: 58px;
-      border-radius: 11px;
-      padding: 8px 9px;
-      border: 1px solid #ffffff1d;
-      background: linear-gradient(170deg, #ffffff16, #ffffff06 56%);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .stat-label {
-      font-size: 10px;
-      line-height: 1;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #bbd7ff;
-      opacity: 0.95;
-    }
-
-    .stat-value {
-      font-size: 15px;
-      line-height: 1.1;
-      font-weight: 600;
-      color: #f9f7f0;
-      white-space: nowrap;
-      text-shadow: 0 1px 10px #00000060;
-    }
-
-    .ui-footer {
-      padding: 10px 12px;
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-      align-items: start;
-      margin-top: auto;
-    }
-
-    .footer-col {
-      min-height: 88px;
-      border-radius: 12px;
-      border: 1px solid #ffffff1c;
-      background: linear-gradient(165deg, #ffffff14, #ffffff05 58%);
-      padding: 8px 9px;
+      background: linear-gradient(180deg, #ffe998, #ffd767 56%, #f7b82d);
     }
 
     .info-drawer {
-      align-self: flex-end;
-      width: min(760px, 94vw);
-      padding: 10px 12px;
+      margin-top: 8px;
+      width: min(1120px, calc(100vw - 16px));
+      border: 3px solid #0a2c5b;
+      border-bottom-width: 5px;
+      background: linear-gradient(180deg, #2c8ee4, #1b67b8 50%, #124d92);
+      box-shadow: 0 2px 0 #072346, inset 0 1px 0 #7fd0ff96;
       display: grid;
-      grid-template-columns: 1fr 1fr 1.2fr;
-      gap: 10px;
+      grid-template-columns: 1fr 1fr 1.15fr;
+      gap: 8px;
+      padding: 8px;
+      pointer-events: auto;
     }
 
     .info-drawer[hidden] {
       display: none;
     }
 
-    .drawer-col {
-      min-height: 96px;
-      border-radius: 11px;
-      border: 1px solid #ffffff1b;
-      background: linear-gradient(165deg, #ffffff12, #ffffff04 56%);
-      padding: 8px 9px;
+    .menu-card {
+      border: 1px solid #07396a;
+      background: #103a6ea9;
+      padding: 6px 7px;
     }
 
-    .col-title {
+    .menu-title {
       margin: 0 0 7px;
-      font-size: 10px;
-      letter-spacing: 0.11em;
+      font: 600 10px/1 "IBM Plex Mono", monospace;
       text-transform: uppercase;
-      color: #9cc9ff;
-      opacity: 0.9;
+      letter-spacing: 0.09em;
+      color: #ffe66d;
     }
 
     .meta-grid {
@@ -226,25 +191,23 @@
     }
 
     .meta-label {
-      font-size: 10px;
-      letter-spacing: 0.06em;
+      font: 600 9px/1 "IBM Plex Mono", monospace;
       text-transform: uppercase;
-      color: #99b5db;
-      line-height: 1;
+      letter-spacing: 0.07em;
+      color: #caecff;
     }
 
     .meta-value {
-      font-size: 13px;
-      font-weight: 600;
-      color: #f6f2e9;
-      line-height: 1.2;
+      font: 600 12px/1.2 "IBM Plex Mono", monospace;
+      color: #ffffff;
+      text-shadow: 1px 1px 0 #19345f;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .tag {
-      color: #8ee9ff;
+      color: #ffd78a;
     }
 
     .seed-row {
@@ -256,123 +219,107 @@
     }
 
     .seed-label {
-      font-size: 10px;
-      letter-spacing: 0.08em;
+      font: 600 9px/1 "IBM Plex Mono", monospace;
       text-transform: uppercase;
-      color: #bbd7ff;
-      opacity: 0.9;
-      margin-right: 2px;
+      letter-spacing: 0.08em;
+      color: #caecff;
     }
 
     .seed-input {
-      width: 156px;
-      padding: 7px 9px;
-      border-radius: 9px;
-      border: 1px solid #ffffff2f;
-      background: #081326cc;
-      color: var(--ink);
+      width: 132px;
+      padding: 6px 7px;
+      border: 2px solid #0a2c5b;
+      background: #e8f3ff;
+      color: #1e3258;
       font: 600 12px/1 "IBM Plex Mono", monospace;
       outline: none;
-      box-shadow: inset 0 1px 0 #ffffff20;
       pointer-events: auto;
     }
 
     .seed-input:focus {
-      border-color: #7ddcff;
-      box-shadow: 0 0 0 2px #7ddcff2f, inset 0 1px 0 #ffffff24;
+      border-color: #ffe57b;
     }
 
     .seed-btn {
-      border: 1px solid #ffffff36;
-      background: #132b4dcc;
-      color: var(--ink);
-      border-radius: 9px;
-      padding: 7px 10px;
-      font: 600 12px/1 "IBM Plex Mono", monospace;
+      border: 2px solid #0a2c5b;
+      background: #ffd965;
+      color: #223761;
+      padding: 6px 8px;
+      font: 700 11px/1 "IBM Plex Mono", monospace;
       cursor: pointer;
       pointer-events: auto;
+      text-transform: uppercase;
     }
 
     .seed-btn:hover {
-      background: #1a3a67cc;
+      background: #ffe287;
     }
 
     .controls {
       margin: 0;
-      font-size: 11px;
-      line-height: 1.5;
-      color: #d5e5ff;
-      opacity: 0.9;
-    }
-
-    .footer-col .controls {
-      margin-top: 8px;
+      font: 600 10px/1.45 "IBM Plex Mono", monospace;
+      color: #e6f4ff;
+      text-shadow: 1px 1px 0 #1a335c;
     }
 
     .power-panel {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 7px;
-      margin-bottom: 6px;
+      grid-template-columns: 1fr;
+      gap: 6px;
     }
 
     .power-card {
-      padding: 6px 8px;
-      border: 1px solid #ffffff24;
+      padding: 6px 7px;
+      border: 1px solid #07396a;
       border-left: 3px solid var(--pc, #7ce8ff);
-      border-radius: 8px;
-      background: #0b172db0;
+      background: #103a6ea9;
     }
 
     .power-top {
       display: flex;
       align-items: baseline;
       justify-content: space-between;
-      gap: 10px;
-      font-size: 11px;
+      gap: 8px;
+      font-size: 10px;
       line-height: 1.2;
     }
 
     .power-name {
-      color: #dbecff;
+      color: #ddf2ff;
       letter-spacing: 0.06em;
       text-transform: uppercase;
       font-weight: 600;
     }
 
     .power-value {
-      color: #f4f3ed;
+      color: #ffffff;
       font-weight: 600;
       white-space: nowrap;
     }
 
     .power-bar {
       margin-top: 5px;
-      height: 5px;
-      border-radius: 999px;
+      height: 4px;
       overflow: hidden;
-      background: #ffffff1f;
+      background: #ffffff22;
     }
 
     .power-fill {
       display: block;
       height: 100%;
       width: 0%;
-      border-radius: 999px;
       background: linear-gradient(90deg, var(--pc, #7ce8ff), #ffffffcc);
     }
 
     .power-empty {
-      font-size: 11px;
-      opacity: 0.78;
-      padding: 3px 2px;
-      color: #cfdef8;
+      font: 600 10px/1.3 "IBM Plex Mono", monospace;
+      color: #e2f2ff;
     }
 
     .power-toast {
       position: fixed;
       left: 50%;
-      top: 86px;
+      top: 62px;
       z-index: 3;
       transform: translate(-50%, -18px) scale(0.97);
       opacity: 0;
@@ -380,14 +327,14 @@
       min-width: 220px;
       max-width: min(84vw, 420px);
       padding: 10px 14px 12px;
-      border-radius: 11px;
-      border: 1px solid var(--toast-border, #7ce8ff88);
-      background: var(--toast-bg, #0e1f369c);
-      color: #f8f7f1;
+      border: 3px solid #0a2c5b;
+      border-bottom-width: 4px;
+      background: var(--toast-bg, #1f6fc39a);
+      color: #f8fbff;
       font: 700 13px/1.2 "IBM Plex Mono", monospace;
       letter-spacing: 0.02em;
       text-align: center;
-      box-shadow: 0 10px 32px #0000004d;
+      box-shadow: 0 6px 20px #0000004d;
       transition: opacity 120ms ease, transform 120ms ease;
     }
 
@@ -410,53 +357,47 @@
     }
 
     @media (max-width: 1180px) {
-      .ui-header {
-        grid-template-columns: 1fr;
-        gap: 9px;
+      .hud-main {
+        grid-template-columns: repeat(4, minmax(92px, 1fr));
       }
 
-      .brand {
-        border-right: 0;
-        border-bottom: 1px solid #ffffff1f;
-        padding-right: 0;
-        padding-bottom: 8px;
-      }
-
-      .stats {
-        grid-template-columns: repeat(4, minmax(86px, 1fr));
+      .hud-title {
+        grid-column: 1 / -1;
       }
 
       .info-drawer {
-        width: min(680px, 94vw);
+        width: min(860px, calc(100vw - 16px));
         grid-template-columns: 1fr 1fr;
-      }
-
-      .power-panel {
-        grid-template-columns: 1fr;
       }
     }
 
     @media (max-width: 760px) {
       .ui-shell {
         padding: 8px;
-        gap: 8px;
       }
 
-      .ui-header,
-      .ui-footer {
-        padding: 8px;
-        gap: 8px;
+      .ui-header {
+        align-items: center;
       }
 
-      .stats {
-        grid-template-columns: repeat(2, minmax(76px, 1fr));
+      .hud-main {
+        grid-template-columns: repeat(2, minmax(96px, 1fr));
       }
 
-      .stat-card {
-        min-height: 52px;
+      .hud-title {
+        grid-column: 1 / -1;
       }
 
-      .stat-value {
+      .hud-title-main {
+        font-size: 13px;
+      }
+
+      .hud-title-sub {
+        font-size: 9px;
+        margin-top: 6px;
+      }
+
+      .hud-value {
         font-size: 14px;
       }
 
@@ -464,14 +405,15 @@
         width: 100%;
         grid-template-columns: 1fr;
         gap: 8px;
+        margin-top: 6px;
       }
 
-      .meta-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+      .seed-input {
+        width: 100%;
       }
 
       .power-toast {
-        top: 74px;
+        top: 56px;
       }
     }
   </style>
@@ -479,39 +421,41 @@
 <body>
   <canvas id="game"></canvas>
   <section class="ui-shell" aria-live="polite">
-    <header class="ui-header ui-panel">
-      <div class="brand">
-        <div class="brand-head">
-          <h1 class="title">Neon Run</h1>
-          <button id="info-toggle" class="info-btn" type="button" aria-expanded="false" aria-controls="info-drawer" title="Show info">i</button>
-        </div>
-        <p class="subtitle">Seeded 4000m time trial</p>
+    <header class="ui-header">
+      <div class="hud-main">
+        <h1 class="hud-title"><span class="hud-title-main">NEON RUN</span><span class="hud-title-sub">4000M TIME TRIAL</span></h1>
+        <div class="hud-stat"><span class="hud-label">Dist</span><span id="distance" class="hud-value">0 m</span></div>
+        <div class="hud-stat"><span class="hud-label">Time</span><span id="run-time" class="hud-value">00:00.00</span></div>
+        <div class="hud-stat"><span class="hud-label">Lives</span><span id="lives" class="hud-value">5</span></div>
+        <div class="hud-stat"><span class="hud-label">Coins</span><span id="coins" class="hud-value">0</span></div>
+        <div class="hud-stat"><span class="hud-label">Score</span><span id="score" class="hud-value">0</span></div>
       </div>
-      <div class="stats">
-        <article class="stat-card"><span class="stat-label">Distance</span><span id="distance" class="stat-value">0 m</span></article>
-        <article class="stat-card"><span class="stat-label">Time</span><span id="run-time" class="stat-value">00:00.00</span></article>
-        <article class="stat-card"><span class="stat-label">Best</span><span id="best-time" class="stat-value">--:--.--</span></article>
-        <article class="stat-card"><span class="stat-label">Score</span><span id="score" class="stat-value">0</span></article>
-        <article class="stat-card"><span class="stat-label">Coins</span><span id="coins" class="stat-value">0</span></article>
-        <article class="stat-card"><span class="stat-label">Lives</span><span id="lives" class="stat-value">5</span></article>
-        <article class="stat-card"><span class="stat-label">Combo</span><span id="combo" class="stat-value">x1.0</span></article>
-        <article class="stat-card"><span class="stat-label">Speed</span><span id="speed" class="stat-value">0</span></article>
-      </div>
+      <button id="info-toggle" class="info-btn" type="button" aria-expanded="false" aria-controls="info-drawer" title="Show info">i</button>
     </header>
 
-    <aside id="info-drawer" class="info-drawer ui-panel" hidden>
-      <section class="drawer-col">
-        <h2 class="col-title">Session</h2>
+    <aside id="info-drawer" class="info-drawer" hidden>
+      <section class="menu-card">
+        <h2 class="menu-title">Session</h2>
         <div class="meta-grid">
           <div class="meta-item"><span class="meta-label">Biome</span><span id="biome" class="meta-value">Aether</span></div>
           <div class="meta-item"><span class="meta-label">Input</span><span id="input" class="meta-value tag">Keyboard</span></div>
           <div class="meta-item"><span class="meta-label">Seed</span><span id="seed-value" class="meta-value">-</span></div>
-          <div class="meta-item"><span class="meta-label">Powers</span><span id="powers" class="meta-value">-</span></div>
+          <div class="meta-item"><span class="meta-label">Best</span><span id="best-time" class="meta-value">--:--.--</span></div>
         </div>
       </section>
 
-      <section class="drawer-col">
-        <h2 class="col-title">Seed Control</h2>
+      <section class="menu-card">
+        <h2 class="menu-title">Run Status</h2>
+        <div class="meta-grid">
+          <div class="meta-item"><span class="meta-label">Speed</span><span id="speed" class="meta-value">0</span></div>
+          <div class="meta-item"><span class="meta-label">Combo</span><span id="combo" class="meta-value">x1.0</span></div>
+          <div class="meta-item"><span class="meta-label">Powers</span><span id="powers" class="meta-value">-</span></div>
+        </div>
+        <div id="power-panel" class="power-panel"></div>
+      </section>
+
+      <section class="menu-card">
+        <h2 class="menu-title">Seed & Controls</h2>
         <div class="seed-row">
           <span class="seed-label">Play Seed</span>
           <input id="seed-input" class="seed-input" type="text" inputmode="text" placeholder="seed value" />
@@ -528,13 +472,6 @@
         </p>
       </section>
     </aside>
-
-    <footer class="ui-footer ui-panel">
-      <section class="footer-col">
-        <h2 class="col-title">Active Powers</h2>
-        <div id="power-panel" class="power-panel"></div>
-      </section>
-    </footer>
   </section>
   <div id="power-toast" class="power-toast" aria-live="polite"></div>
 
@@ -746,6 +683,7 @@
       let runTime = 0;
       let finishTime = null;
       let runFinished = false;
+      let runTimerStarted = false;
       let bestTimeForSeed = null;
       let goal = null;
 
@@ -1982,6 +1920,7 @@
         runTime = 0;
         finishTime = null;
         runFinished = false;
+        runTimerStarted = false;
         goal = null;
 
         collectedCoins = 0;
@@ -2058,8 +1997,6 @@
           return;
         }
 
-        runTime += dt;
-
         if (invulnTimer > 0) invulnTimer = Math.max(0, invulnTimer - dt);
         if (respawnControlLock > 0) respawnControlLock = Math.max(0, respawnControlLock - dt);
         if (dashCooldown > 0) dashCooldown = Math.max(0, dashCooldown - dt);
@@ -2092,6 +2029,13 @@
         const canMove = respawnControlLock <= 0;
         const moveInput = canMove ? move : 0;
         const canDash = canMove;
+
+        if (!runTimerStarted && (Math.abs(moveInput) > 0.08 || jumpPressed || dashPressed)) {
+          runTimerStarted = true;
+        }
+        if (runTimerStarted) {
+          runTime += dt;
+        }
 
         if (jumpPressed && (player.coyote > 0 || player.onGround)) {
           player.vy = -820;
@@ -2730,11 +2674,95 @@
 
         ctx.restore();
 
+        const cx = sx + player.w * 0.5;
+        const cy = syVisual + player.h * 0.5;
+
+        if (magnetTimer > 0) {
+          const pulse = 0.7 + Math.sin(worldTime * 7.4) * 0.3;
+          ctx.strokeStyle = "rgba(255, 216, 104, 0.42)";
+          ctx.lineWidth = 2.6;
+          ctx.beginPath();
+          ctx.arc(cx, cy, 36 + Math.sin(worldTime * 5.5) * 2.2, 0, Math.PI * 2);
+          ctx.stroke();
+
+          for (let i = 0; i < 4; i += 1) {
+            const a = worldTime * (2.6 + i * 0.24) + i * (Math.PI * 2 / 4);
+            const ox = Math.cos(a) * (32 + i * 3);
+            const oy = Math.sin(a * 1.08) * (18 + i * 2);
+            const orbX = cx + ox;
+            const orbY = cy + oy - 3;
+
+            ctx.fillStyle = "rgba(255, 222, 120, 0.34)";
+            ctx.beginPath();
+            ctx.arc(orbX, orbY, 12 * pulse, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = "#ffd868";
+            ctx.beginPath();
+            ctx.arc(orbX, orbY, 4.8, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = "#fff2bf";
+            ctx.beginPath();
+            ctx.arc(orbX - 1.2, orbY - 1.4, 1.7, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        if (tripleJumpTimer > 0) {
+          const floatY = Math.sin(worldTime * 6.6) * 1.6;
+          ctx.strokeStyle = "rgba(183, 160, 255, 0.36)";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(cx, cy - 6 + floatY, 30, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.strokeStyle = "rgba(183, 160, 255, 0.88)";
+          ctx.lineWidth = 2.8;
+          ctx.beginPath();
+          ctx.moveTo(cx - 20, syVisual + 11 + floatY);
+          ctx.quadraticCurveTo(cx - 33, syVisual + 1 + floatY, cx - 27, syVisual - 11 + floatY);
+          ctx.moveTo(cx + 20, syVisual + 11 + floatY);
+          ctx.quadraticCurveTo(cx + 33, syVisual + 1 + floatY, cx + 27, syVisual - 11 + floatY);
+          ctx.stroke();
+
+          ctx.fillStyle = "#d7c7ff";
+          ctx.beginPath();
+          ctx.moveTo(cx - 3, syVisual - 15 + floatY);
+          ctx.lineTo(cx + 5, syVisual - 27 + floatY);
+          ctx.lineTo(cx + 14, syVisual - 15 + floatY);
+          ctx.lineTo(cx + 8, syVisual - 15 + floatY);
+          ctx.lineTo(cx + 16, syVisual - 5 + floatY);
+          ctx.lineTo(cx + 4, syVisual - 12 + floatY);
+          ctx.lineTo(cx - 2, syVisual - 12 + floatY);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        if (dashCharges > 0) {
+          const dashMarks = Math.min(4, dashCharges);
+          for (let i = 0; i < dashMarks; i += 1) {
+            const y = syVisual + player.h - 16 - i * 8.5;
+            const x = cx - dir * (24 + i * 8);
+            ctx.fillStyle = "rgba(255, 158, 123, " + (0.95 - i * 0.18) + ")";
+            ctx.beginPath();
+            ctx.moveTo(x - dir * 10, y);
+            ctx.lineTo(x + dir * 3, y - 5.5);
+            ctx.lineTo(x + dir * 3, y + 5.5);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.strokeStyle = "rgba(255, 226, 196, " + (0.72 - i * 0.16) + ")";
+            ctx.lineWidth = 1.4;
+            ctx.stroke();
+          }
+        }
+
         if (shieldCharges > 0) {
           ctx.strokeStyle = "rgba(124, 232, 255, 0.7)";
-          ctx.lineWidth = 2;
+          ctx.lineWidth = 3;
           ctx.beginPath();
-          ctx.arc(sx + player.w * 0.5, syVisual + player.h * 0.5, 34 + Math.sin(worldTime * 8) * 2, 0, Math.PI * 2);
+          ctx.arc(cx, cy, 34 + Math.sin(worldTime * 8) * 2, 0, Math.PI * 2);
           ctx.stroke();
         }
       }
@@ -2779,7 +2807,7 @@
 
           ctx.textAlign = "center";
           ctx.fillStyle = finished ? "#7be7ff" : "#ff9e4f";
-          ctx.font = "800 56px Syne, sans-serif";
+          ctx.font = "700 42px \"Press Start 2P\", cursive";
           ctx.fillText(finished ? "FINISHED" : "GAME OVER", width / 2, centerY - 72);
 
           ctx.fillStyle = "#f4f3ed";
