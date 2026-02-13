@@ -43,120 +43,508 @@
       display: block;
     }
 
-    .hud {
+    .ui-shell {
       position: fixed;
-      top: 12px;
-      left: 12px;
+      inset: 0;
       z-index: 2;
-      padding: 12px 14px;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      padding: 12px;
+      gap: 12px;
+    }
+
+    .ui-panel {
       border: 1px solid var(--line);
-      border-radius: 12px;
-      background: var(--panel);
-      backdrop-filter: blur(6px);
-      max-width: min(94vw, 520px);
-      box-shadow: 0 8px 34px #00000045;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #0d1830d9, #0b162ac4 48%, #091224ba);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 12px 36px #0000004a;
+      pointer-events: auto;
+      overflow: hidden;
+    }
+
+    .ui-header {
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: minmax(160px, 250px) 1fr;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      border-right: 1px solid #ffffff1f;
+      padding-right: 12px;
+    }
+
+    .brand-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
     }
 
     .title {
-      margin: 0 0 8px;
-      font: 800 20px/1 "Syne", sans-serif;
-      letter-spacing: 0.03em;
+      margin: 0;
+      font: 800 clamp(18px, 2.4vw, 28px)/0.92 "Syne", sans-serif;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
+      color: #fff3df;
+      text-shadow: 0 2px 16px #00000065;
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #9edbff;
+      opacity: 0.9;
+    }
+
+    .info-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid #ffffff44;
+      background: linear-gradient(155deg, #1f3c66, #112645);
+      color: #f7f4e8;
+      font: 800 14px/1 "Syne", sans-serif;
+      cursor: pointer;
+      pointer-events: auto;
+      box-shadow: 0 2px 12px #0000004f;
+    }
+
+    .info-btn:hover {
+      background: linear-gradient(155deg, #244775, #16325a);
+    }
+
+    .info-btn[aria-expanded="true"] {
+      border-color: #86e7ff;
+      box-shadow: 0 0 0 2px #86e7ff2f, 0 2px 12px #0000004f;
     }
 
     .stats {
       display: grid;
-      grid-template-columns: auto auto;
-      gap: 4px 14px;
-      margin-bottom: 8px;
-      font-size: 13px;
+      grid-template-columns: repeat(8, minmax(74px, 1fr));
+      gap: 8px;
+      align-content: center;
     }
 
-    .controls {
-      margin: 0;
-      font-size: 12px;
-      opacity: 0.88;
-      line-height: 1.45;
+    .stat-card {
+      min-height: 58px;
+      border-radius: 11px;
+      padding: 8px 9px;
+      border: 1px solid #ffffff1d;
+      background: linear-gradient(170deg, #ffffff16, #ffffff06 56%);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      line-height: 1;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #bbd7ff;
+      opacity: 0.95;
+    }
+
+    .stat-value {
+      font-size: 15px;
+      line-height: 1.1;
+      font-weight: 600;
+      color: #f9f7f0;
+      white-space: nowrap;
+      text-shadow: 0 1px 10px #00000060;
+    }
+
+    .ui-footer {
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      align-items: start;
+      margin-top: auto;
+    }
+
+    .footer-col {
+      min-height: 88px;
+      border-radius: 12px;
+      border: 1px solid #ffffff1c;
+      background: linear-gradient(165deg, #ffffff14, #ffffff05 58%);
+      padding: 8px 9px;
+    }
+
+    .info-drawer {
+      align-self: flex-end;
+      width: min(760px, 94vw);
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.2fr;
+      gap: 10px;
+    }
+
+    .info-drawer[hidden] {
+      display: none;
+    }
+
+    .drawer-col {
+      min-height: 96px;
+      border-radius: 11px;
+      border: 1px solid #ffffff1b;
+      background: linear-gradient(165deg, #ffffff12, #ffffff04 56%);
+      padding: 8px 9px;
+    }
+
+    .col-title {
+      margin: 0 0 7px;
+      font-size: 10px;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+      color: #9cc9ff;
+      opacity: 0.9;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px 10px;
+    }
+
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .meta-label {
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #99b5db;
+      line-height: 1;
+    }
+
+    .meta-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: #f6f2e9;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .tag {
-      color: var(--accent-2);
+      color: #8ee9ff;
     }
 
     .seed-row {
       display: flex;
       gap: 6px;
       align-items: center;
-      margin-top: 8px;
       flex-wrap: wrap;
+      pointer-events: auto;
     }
 
     .seed-label {
-      font-size: 12px;
-      opacity: 0.88;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #bbd7ff;
+      opacity: 0.9;
+      margin-right: 2px;
     }
 
     .seed-input {
-      width: 132px;
-      padding: 5px 7px;
-      border-radius: 8px;
-      border: 1px solid var(--line);
+      width: 156px;
+      padding: 7px 9px;
+      border-radius: 9px;
+      border: 1px solid #ffffff2f;
       background: #081326cc;
       color: var(--ink);
       font: 600 12px/1 "IBM Plex Mono", monospace;
+      outline: none;
+      box-shadow: inset 0 1px 0 #ffffff20;
+      pointer-events: auto;
+    }
+
+    .seed-input:focus {
+      border-color: #7ddcff;
+      box-shadow: 0 0 0 2px #7ddcff2f, inset 0 1px 0 #ffffff24;
     }
 
     .seed-btn {
-      border: 1px solid var(--line);
-      background: #122748cc;
+      border: 1px solid #ffffff36;
+      background: #132b4dcc;
       color: var(--ink);
-      border-radius: 8px;
-      padding: 5px 9px;
+      border-radius: 9px;
+      padding: 7px 10px;
       font: 600 12px/1 "IBM Plex Mono", monospace;
       cursor: pointer;
+      pointer-events: auto;
     }
 
     .seed-btn:hover {
-      background: #19345fcc;
+      background: #1a3a67cc;
+    }
+
+    .controls {
+      margin: 0;
+      font-size: 11px;
+      line-height: 1.5;
+      color: #d5e5ff;
+      opacity: 0.9;
+    }
+
+    .footer-col .controls {
+      margin-top: 8px;
+    }
+
+    .power-panel {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
+      margin-bottom: 6px;
+    }
+
+    .power-card {
+      padding: 6px 8px;
+      border: 1px solid #ffffff24;
+      border-left: 3px solid var(--pc, #7ce8ff);
+      border-radius: 8px;
+      background: #0b172db0;
+    }
+
+    .power-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 11px;
+      line-height: 1.2;
+    }
+
+    .power-name {
+      color: #dbecff;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .power-value {
+      color: #f4f3ed;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .power-bar {
+      margin-top: 5px;
+      height: 5px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #ffffff1f;
+    }
+
+    .power-fill {
+      display: block;
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--pc, #7ce8ff), #ffffffcc);
+    }
+
+    .power-empty {
+      font-size: 11px;
+      opacity: 0.78;
+      padding: 3px 2px;
+      color: #cfdef8;
+    }
+
+    .power-toast {
+      position: fixed;
+      left: 50%;
+      top: 86px;
+      z-index: 3;
+      transform: translate(-50%, -18px) scale(0.97);
+      opacity: 0;
+      pointer-events: none;
+      min-width: 220px;
+      max-width: min(84vw, 420px);
+      padding: 10px 14px 12px;
+      border-radius: 11px;
+      border: 1px solid var(--toast-border, #7ce8ff88);
+      background: var(--toast-bg, #0e1f369c);
+      color: #f8f7f1;
+      font: 700 13px/1.2 "IBM Plex Mono", monospace;
+      letter-spacing: 0.02em;
+      text-align: center;
+      box-shadow: 0 10px 32px #0000004d;
+      transition: opacity 120ms ease, transform 120ms ease;
+    }
+
+    .power-toast::after {
+      content: "";
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 4px;
+      height: 2px;
+      border-radius: 999px;
+      background: var(--toast-accent, #7ce8ff);
+      transform-origin: left center;
+      transform: scaleX(var(--toast-progress, 1));
+    }
+
+    .power-toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0) scale(1);
+    }
+
+    @media (max-width: 1180px) {
+      .ui-header {
+        grid-template-columns: 1fr;
+        gap: 9px;
+      }
+
+      .brand {
+        border-right: 0;
+        border-bottom: 1px solid #ffffff1f;
+        padding-right: 0;
+        padding-bottom: 8px;
+      }
+
+      .stats {
+        grid-template-columns: repeat(4, minmax(86px, 1fr));
+      }
+
+      .info-drawer {
+        width: min(680px, 94vw);
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .power-panel {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .ui-shell {
+        padding: 8px;
+        gap: 8px;
+      }
+
+      .ui-header,
+      .ui-footer {
+        padding: 8px;
+        gap: 8px;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, minmax(76px, 1fr));
+      }
+
+      .stat-card {
+        min-height: 52px;
+      }
+
+      .stat-value {
+        font-size: 14px;
+      }
+
+      .info-drawer {
+        width: 100%;
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .meta-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .power-toast {
+        top: 74px;
+      }
     }
   </style>
 </head>
 <body>
   <canvas id="game"></canvas>
-  <section class="hud" aria-live="polite">
-    <h1 class="title">Neon Run</h1>
-    <div class="stats">
-      <span>Distance</span><span id="distance">0 m</span>
-      <span>Score</span><span id="score">0</span>
-      <span>Speed</span><span id="speed">0</span>
-      <span>Coins</span><span id="coins">0</span>
-      <span>Combo</span><span id="combo">x1.0</span>
-      <span>Lives</span><span id="lives">5</span>
-      <span>Biome</span><span id="biome">Aether</span>
-      <span>Seed</span><span id="seed-value">-</span>
-      <span>Powers</span><span id="powers">-</span>
-      <span>Input</span><span id="input" class="tag">Keyboard</span>
-    </div>
-    <p class="controls">
-      Move: A/D or Left/Right<br />
-      Jump: W, Up, or Space (double jump base)<br />
-      Dash: Shift/F (or RB/X on controller)<br />
-      Controller: Left Stick / D-Pad + A<br />
-      Game over: R replay seed, N random seed
-    </p>
-    <div class="seed-row">
-      <span class="seed-label">Play Seed</span>
-      <input id="seed-input" class="seed-input" type="text" inputmode="text" placeholder="seed value" />
-      <button id="seed-play" class="seed-btn" type="button">Play</button>
-      <button id="seed-random" class="seed-btn" type="button">Random</button>
-    </div>
+  <section class="ui-shell" aria-live="polite">
+    <header class="ui-header ui-panel">
+      <div class="brand">
+        <div class="brand-head">
+          <h1 class="title">Neon Run</h1>
+          <button id="info-toggle" class="info-btn" type="button" aria-expanded="false" aria-controls="info-drawer" title="Show info">i</button>
+        </div>
+        <p class="subtitle">Seeded 4000m time trial</p>
+      </div>
+      <div class="stats">
+        <article class="stat-card"><span class="stat-label">Distance</span><span id="distance" class="stat-value">0 m</span></article>
+        <article class="stat-card"><span class="stat-label">Time</span><span id="run-time" class="stat-value">00:00.00</span></article>
+        <article class="stat-card"><span class="stat-label">Best</span><span id="best-time" class="stat-value">--:--.--</span></article>
+        <article class="stat-card"><span class="stat-label">Score</span><span id="score" class="stat-value">0</span></article>
+        <article class="stat-card"><span class="stat-label">Coins</span><span id="coins" class="stat-value">0</span></article>
+        <article class="stat-card"><span class="stat-label">Lives</span><span id="lives" class="stat-value">5</span></article>
+        <article class="stat-card"><span class="stat-label">Combo</span><span id="combo" class="stat-value">x1.0</span></article>
+        <article class="stat-card"><span class="stat-label">Speed</span><span id="speed" class="stat-value">0</span></article>
+      </div>
+    </header>
+
+    <aside id="info-drawer" class="info-drawer ui-panel" hidden>
+      <section class="drawer-col">
+        <h2 class="col-title">Session</h2>
+        <div class="meta-grid">
+          <div class="meta-item"><span class="meta-label">Biome</span><span id="biome" class="meta-value">Aether</span></div>
+          <div class="meta-item"><span class="meta-label">Input</span><span id="input" class="meta-value tag">Keyboard</span></div>
+          <div class="meta-item"><span class="meta-label">Seed</span><span id="seed-value" class="meta-value">-</span></div>
+          <div class="meta-item"><span class="meta-label">Powers</span><span id="powers" class="meta-value">-</span></div>
+        </div>
+      </section>
+
+      <section class="drawer-col">
+        <h2 class="col-title">Seed Control</h2>
+        <div class="seed-row">
+          <span class="seed-label">Play Seed</span>
+          <input id="seed-input" class="seed-input" type="text" inputmode="text" placeholder="seed value" />
+          <button id="seed-play" class="seed-btn" type="button">Play</button>
+          <button id="seed-random" class="seed-btn" type="button">Random</button>
+        </div>
+      </section>
+
+      <section class="drawer-col">
+        <h2 class="col-title">Controls</h2>
+        <p class="controls">
+          Move A/D or Left/Right | Jump W/Up/Space | Dash Shift/F (RB/X)<br />
+          Controller: Left Stick or D-Pad + A | Restart: R replay, N random seed
+        </p>
+      </section>
+    </aside>
+
+    <footer class="ui-footer ui-panel">
+      <section class="footer-col">
+        <h2 class="col-title">Active Powers</h2>
+        <div id="power-panel" class="power-panel"></div>
+      </section>
+    </footer>
   </section>
+  <div id="power-toast" class="power-toast" aria-live="polite"></div>
 
   <script>
     (() => {
       const canvas = document.getElementById("game");
       const ctx = canvas.getContext("2d");
       const distanceEl = document.getElementById("distance");
+      const runTimeEl = document.getElementById("run-time");
+      const bestTimeEl = document.getElementById("best-time");
       const scoreEl = document.getElementById("score");
       const speedEl = document.getElementById("speed");
       const coinsEl = document.getElementById("coins");
@@ -169,14 +557,25 @@
       const seedRandomBtn = document.getElementById("seed-random");
       const powersEl = document.getElementById("powers");
       const inputEl = document.getElementById("input");
+      const powerPanelEl = document.getElementById("power-panel");
+      const powerToastEl = document.getElementById("power-toast");
+      const infoToggleBtn = document.getElementById("info-toggle");
+      const infoDrawerEl = document.getElementById("info-drawer");
+      const uiHeaderEl = document.querySelector(".ui-header");
 
       const world = {
         gravity: 2200,
         chunkWidth: 1250,
         minY: 220,
         maxY: 560,
-        biomeSpanMeters: 500
+        biomeSpanMeters: 500,
+        metersToPx: 10,
+        levelLengthMeters: 4000,
+        finiteCourse: true
       };
+      const levelStartX = 80;
+      const levelEndX = levelStartX + world.levelLengthMeters * world.metersToPx;
+      const levelBuildPaddingPx = 560;
 
       const biomes = [
         {
@@ -276,9 +675,17 @@
         triple: "#b7a0ff"
       };
 
+      const powerupDefs = {
+        shield: { name: "Shield", max: 3, mode: "charges" },
+        magnet: { name: "Magnet", duration: 12, mode: "timer" },
+        dash: { name: "Dash", max: 8, mode: "charges" },
+        triple: { name: "Triple Jump", duration: 12, mode: "timer" }
+      };
+
       let width = 0;
       let height = 0;
       let dpr = 1;
+      let gameplayTopInset = 0;
 
       const keys = new Set();
       const jumpKeys = new Set(["Space", "ArrowUp", "KeyW"]);
@@ -327,6 +734,8 @@
 
       let maxX = player.x;
       let safePoint = { x: player.x, y: player.y };
+      let safePlatformId = null;
+      let nextPlatformId = 1;
       let generatedUntil = 0;
       let lastPlatformY = 500;
       let generationCursor = 650;
@@ -334,6 +743,11 @@
       let lives = maxLives;
       let gameOver = false;
       let invulnTimer = 0;
+      let runTime = 0;
+      let finishTime = null;
+      let runFinished = false;
+      let bestTimeForSeed = null;
+      let goal = null;
 
       let collectedCoins = 0;
       let baseCoinScore = 0;
@@ -354,6 +768,9 @@
       let shakeTime = 0;
       let shakeStrength = 0;
       let respawnControlLock = 0;
+      let powerToastTimer = 0;
+      let powerToastDuration = 0;
+      let powerPanelSignature = "";
 
       let lastInputMode = "Keyboard";
       let prevJumpHeld = false;
@@ -370,6 +787,8 @@
       let audioGainA = null;
       let audioGainB = null;
       let audioMaster = null;
+      let starField = [];
+      let starWrap = 2400;
 
       function mulberry32(seed) {
         let t = seed >>> 0;
@@ -413,6 +832,41 @@
         return hashSeedString(text);
       }
 
+      function formatTime(seconds) {
+        if (!Number.isFinite(seconds) || seconds < 0) return "--:--.--";
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        const centis = Math.floor((seconds - Math.floor(seconds)) * 100);
+        return String(mins).padStart(2, "0")
+          + ":" + String(secs).padStart(2, "0")
+          + "." + String(centis).padStart(2, "0");
+      }
+
+      function bestTimeStorageKey(seed) {
+        return "neon_run_best_seed_" + (seed >>> 0);
+      }
+
+      function loadBestTimeForSeed(seed) {
+        try {
+          const raw = sessionStorage.getItem(bestTimeStorageKey(seed));
+          if (raw === null) return null;
+          const value = Number(raw);
+          if (!Number.isFinite(value) || value <= 0) return null;
+          return value;
+        } catch (err) {
+          return null;
+        }
+      }
+
+      function saveBestTimeForSeed(seed, seconds) {
+        if (!Number.isFinite(seconds) || seconds <= 0) return;
+        try {
+          sessionStorage.setItem(bestTimeStorageKey(seed), String(seconds));
+        } catch (err) {
+          // Ignore storage issues in restricted contexts.
+        }
+      }
+
       function readSeedFromUrl() {
         try {
           const params = new URLSearchParams(window.location.search);
@@ -438,11 +892,20 @@
         currentSeed = resolved;
         worldRand = mulberry32(currentSeed);
         fxRand = mulberry32((currentSeed ^ 0x9e3779b9) >>> 0);
+        bestTimeForSeed = loadBestTimeForSeed(currentSeed);
+        if (bestTimeEl) bestTimeEl.textContent = bestTimeForSeed === null ? "--:--.--" : formatTime(bestTimeForSeed);
 
         const syncInput = options.syncInput !== false;
         const syncUrl = options.syncUrl !== false;
         if (syncInput && seedInputEl) seedInputEl.value = String(currentSeed);
         if (syncUrl) writeSeedToUrl(currentSeed);
+      }
+
+      function setInfoPanelOpen(open) {
+        if (!infoDrawerEl || !infoToggleBtn) return;
+        infoDrawerEl.hidden = !open;
+        infoToggleBtn.setAttribute("aria-expanded", open ? "true" : "false");
+        updateGameplayTopInset();
       }
 
       function restartWithEnteredSeed() {
@@ -488,7 +951,7 @@
       }
 
       function distanceForX(x) {
-        return Math.max(0, (x - 80) / 10);
+        return Math.max(0, (x - levelStartX) / world.metersToPx);
       }
 
       function difficultyForMeters(meters) {
@@ -533,6 +996,39 @@
         return "rgb(" + rr + ", " + gg + ", " + bb + ")";
       }
 
+      function rebuildStarField() {
+        const visibleHeight = Math.max(120, height - gameplayTopInset);
+        const skyHeight = Math.max(120, Math.floor(visibleHeight * 0.76));
+        starWrap = Math.max(2000, Math.floor(width * 2.6));
+        const count = Math.max(120, Math.floor((starWrap * skyHeight) / 8200));
+        const rng = mulberry32((currentSeed ^ 0xa341316c) >>> 0);
+
+        starField = [];
+        for (let i = 0; i < count; i += 1) {
+          const twinkle = rng();
+          starField.push({
+            x: rng() * starWrap,
+            y: gameplayTopInset + rng() * skyHeight,
+            size: rng() < 0.12 ? 2.2 : (rng() < 0.52 ? 1.6 : 1.1),
+            alpha: 0.25 + rng() * 0.7,
+            depth: 0.03 + rng() * 0.14,
+            twinklePhase: twinkle * Math.PI * 2,
+            twinkleSpeed: 0.8 + rng() * 2.4,
+            useBiomeTint: rng() < 0.2
+          });
+        }
+      }
+
+      function updateGameplayTopInset() {
+        let nextInset = 0;
+        if (uiHeaderEl) {
+          const rect = uiHeaderEl.getBoundingClientRect();
+          nextInset = rect.bottom + 8;
+        }
+        const maxInset = Math.max(0, height - 120);
+        gameplayTopInset = clamp(Math.ceil(nextInset), 0, maxInset);
+      }
+
       function resize() {
         dpr = Math.min(2, window.devicePixelRatio || 1);
         width = window.innerWidth;
@@ -542,6 +1038,8 @@
         canvas.style.width = width + "px";
         canvas.style.height = height + "px";
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        updateGameplayTopInset();
+        rebuildStarField();
       }
 
       function tryInitAudio() {
@@ -615,6 +1113,7 @@
         }
 
         const p = {
+          id: nextPlatformId++,
           x,
           y,
           w,
@@ -782,6 +1281,13 @@
         const start = addPlatform(-300, 500, 950, 22, 0.3, 0, "static");
         start.isMain = true;
         maybeAddCoinsOnPlatform(start, 0);
+        safePlatformId = start.id;
+        const minSafeX = start.x + 18;
+        const maxSafeX = start.x + start.w - player.w - 18;
+        safePoint = {
+          x: clamp(player.x, minSafeX, maxSafeX),
+          y: start.y - player.h
+        };
         generatedUntil = 650;
         lastPlatformY = 500;
         generationCursor = 650;
@@ -797,20 +1303,21 @@
           const meters = distanceForX(cursor);
           const difficulty = difficultyForMeters(meters);
 
-          const gapMin = Math.floor((46 + difficulty * 8) * biome.gapMul);
-          const gapMax = Math.floor((92 + difficulty * 24) * biome.gapMul);
+          // Keep the main route reliably jumpable even at higher speed/biome variance.
+          const gapMin = Math.floor((36 + difficulty * 5) * biome.gapMul);
+          const gapMax = Math.floor((70 + difficulty * 12) * biome.gapMul);
           cursor += ri(gapMin, gapMax);
 
           const widthMin = Math.max(112, 166 - Math.floor(difficulty * 34));
           const widthMax = Math.max(widthMin + 24, 268 - Math.floor(difficulty * 58));
           const mainWidth = ri(widthMin, widthMax);
 
-          const upRange = Math.floor(68 + difficulty * 20);
-          const downRange = Math.floor(82 + difficulty * 26);
+          const upRange = Math.floor(52 + difficulty * 10);
+          const downRange = Math.floor(72 + difficulty * 16);
           lastPlatformY += ri(-upRange, downRange);
           lastPlatformY = clamp(lastPlatformY, world.minY, world.maxY);
 
-          const main = addPlatform(cursor, lastPlatformY, mainWidth, 20, r(0.14, 0.52), biomeIndex);
+          const main = addPlatform(cursor, lastPlatformY, mainWidth, 20, r(0.14, 0.52), biomeIndex, "static");
           main.isMain = true;
           decoratePlatform(main);
 
@@ -818,7 +1325,7 @@
             const upperW = ri(80, 140);
             const upperX = cursor + ri(0, Math.max(12, mainWidth - upperW));
             const upperY = clamp(lastPlatformY - ri(95, 145), world.minY - 30, world.maxY - 80);
-            const upper = addPlatform(upperX, upperY, upperW, 16, r(0.45, 0.68), biomeIndex, "static");
+            const upper = addPlatform(upperX, upperY, upperW, 16, r(0.45, 0.68), biomeIndex);
             upper.isMain = false;
             maybeAddCoinsOnPlatform(upper, difficulty * 0.8);
             if (rand() < 0.22) maybeAddPowerupOnPlatform(upper, biome);
@@ -838,35 +1345,117 @@
         }
       }
 
+      function generateCourseTo(targetX) {
+        while (generatedUntil < targetX) {
+          generateChunk(generatedUntil);
+          generatedUntil += world.chunkWidth;
+        }
+      }
+
+      function setupGoal() {
+        goal = null;
+        let anchor = null;
+        let bestDistance = Infinity;
+
+        for (let i = 0; i < platforms.length; i += 1) {
+          const p = platforms[i];
+          if (!p.isMain || p.type !== "static") continue;
+          if (levelEndX >= p.x + 28 && levelEndX <= p.x + p.w - 28) {
+            anchor = p;
+            break;
+          }
+          const center = p.x + p.w * 0.5;
+          const dist = Math.abs(center - levelEndX);
+          if (dist < bestDistance) {
+            bestDistance = dist;
+            anchor = p;
+          }
+        }
+
+        if (!anchor) {
+          const biomeIndex = biomeIndexForX(levelEndX);
+          const rescueY = clamp(lastPlatformY, world.minY, world.maxY);
+          anchor = addPlatform(levelEndX - 120, rescueY, 240, 22, 0.34, biomeIndex, "static");
+          anchor.isMain = true;
+        }
+
+        const goalX = clamp(levelEndX, anchor.x + 26, anchor.x + anchor.w - 24);
+        goal = {
+          x: goalX,
+          y: anchor.y,
+          h: 84,
+          poleH: 86
+        };
+      }
+
+      function playerReachedGoal() {
+        if (!goal) return false;
+        const zoneX = goal.x - 15;
+        const zoneY = goal.y - goal.h - 8;
+        const zoneW = 30;
+        const zoneH = goal.h + 24;
+        const playerFeet = player.y + player.h;
+        const centerX = player.x + player.w * 0.5;
+
+        if (playerFeet > goal.y + 18) return false;
+        if (centerX >= goal.x + 10) return true;
+        return player.x + player.w > zoneX
+          && player.x < zoneX + zoneW
+          && player.y + player.h > zoneY
+          && player.y < zoneY + zoneH;
+      }
+
+      function completeRun() {
+        if (runFinished) return;
+        runFinished = true;
+        finishTime = runTime;
+        gameOver = true;
+        player.vx = 0;
+        player.vy = 0;
+        prevJumpHeld = false;
+        prevDashHeld = false;
+
+        let newBest = false;
+        if (bestTimeForSeed === null || finishTime < bestTimeForSeed) {
+          bestTimeForSeed = finishTime;
+          saveBestTimeForSeed(currentSeed, bestTimeForSeed);
+          newBest = true;
+        }
+        if (bestTimeEl) bestTimeEl.textContent = bestTimeForSeed === null ? "--:--.--" : formatTime(bestTimeForSeed);
+        showPowerToast("shield", (newBest ? "New Best " : "Finish ") + formatTime(finishTime));
+      }
+
       function cullWorld() {
         const left = camera.x - 900;
         const right = player.x + width * 3.2;
-
-        for (let i = platforms.length - 1; i >= 0; i -= 1) {
-          const p = platforms[i];
-          if (p.x + p.w < left || p.x > right) platforms.splice(i, 1);
-        }
-        for (let i = coins.length - 1; i >= 0; i -= 1) {
-          const c = coins[i];
-          if (c.x < left - 120 || c.x > right + 200 || c.y > height + 700) coins.splice(i, 1);
-        }
-        for (let i = spikes.length - 1; i >= 0; i -= 1) {
-          const s = spikes[i];
-          if (s.x + s.w < left - 100 || s.x > right + 100) spikes.splice(i, 1);
-        }
-        for (let i = enemies.length - 1; i >= 0; i -= 1) {
-          const e = enemies[i];
-          if (e.x < left - 200 || e.x > right + 250 || e.y > height + 400) enemies.splice(i, 1);
+        if (!world.finiteCourse) {
+          for (let i = platforms.length - 1; i >= 0; i -= 1) {
+            const p = platforms[i];
+            if (p.id === safePlatformId) continue;
+            if (p.x + p.w < left || p.x > right) platforms.splice(i, 1);
+          }
+          for (let i = coins.length - 1; i >= 0; i -= 1) {
+            const c = coins[i];
+            if (c.x < left - 120 || c.x > right + 200 || c.y > height + 700) coins.splice(i, 1);
+          }
+          for (let i = spikes.length - 1; i >= 0; i -= 1) {
+            const s = spikes[i];
+            if (s.x + s.w < left - 100 || s.x > right + 100) spikes.splice(i, 1);
+          }
+          for (let i = enemies.length - 1; i >= 0; i -= 1) {
+            const e = enemies[i];
+            if (e.x < left - 200 || e.x > right + 250 || e.y > height + 400) enemies.splice(i, 1);
+          }
+          for (let i = powerups.length - 1; i >= 0; i -= 1) {
+            const p = powerups[i];
+            if (p.x < left - 120 || p.x > right + 180 || p.y > height + 400) powerups.splice(i, 1);
+          }
         }
         for (let i = projectiles.length - 1; i >= 0; i -= 1) {
           const p = projectiles[i];
           if (p.life <= 0 || p.x < left - 260 || p.x > right + 260 || p.y > height + 300 || p.y < -280) {
             projectiles.splice(i, 1);
           }
-        }
-        for (let i = powerups.length - 1; i >= 0; i -= 1) {
-          const p = powerups[i];
-          if (p.x < left - 120 || p.x > right + 180 || p.y > height + 400) powerups.splice(i, 1);
         }
         for (let i = particles.length - 1; i >= 0; i -= 1) {
           if (particles[i].life <= 0) particles.splice(i, 1);
@@ -1023,7 +1612,49 @@
         }
       }
 
+      function ensureRespawnAnchor() {
+        let anchor = null;
+        if (safePlatformId !== null) {
+          anchor = platforms.find((p) => p.id === safePlatformId) || null;
+        }
+
+        if (!anchor) {
+          const centerX = safePoint.x + player.w * 0.5;
+          let best = null;
+          let bestScore = Infinity;
+          for (let i = 0; i < platforms.length; i += 1) {
+            const p = platforms[i];
+            if (p.type !== "static" || !p.isMain) continue;
+            if (centerX < p.x - 4 || centerX > p.x + p.w + 4) continue;
+            const score = Math.abs((p.y - player.h) - safePoint.y);
+            if (score < bestScore) {
+              bestScore = score;
+              best = p;
+            }
+          }
+          anchor = best;
+        }
+
+        if (!anchor) {
+          const biomeIndex = biomeIndexForX(safePoint.x);
+          const rescueX = safePoint.x - 28;
+          const rescueY = safePoint.y + player.h + 6;
+          anchor = addPlatform(rescueX, rescueY, 220, 20, 0.34, biomeIndex, "static");
+          anchor.isMain = true;
+        }
+
+        const minSafeX = anchor.x + 18;
+        const maxSafeX = anchor.x + anchor.w - player.w - 18;
+        const safeX = maxSafeX > minSafeX
+          ? clamp(safePoint.x, minSafeX, maxSafeX)
+          : anchor.x + (anchor.w - player.w) * 0.5;
+
+        safePlatformId = anchor.id;
+        safePoint = { x: safeX, y: anchor.y - player.h };
+      }
+
       function respawnPlayer() {
+        ensureRespawnAnchor();
         resetFallingPlatforms(safePoint.x);
         player.x = safePoint.x;
         player.y = safePoint.y - 6;
@@ -1070,17 +1701,27 @@
       }
 
       function applyPowerup(type) {
+        let pickupText = "";
         if (type === "shield") {
-          shieldCharges = Math.min(3, shieldCharges + 1);
+          const before = shieldCharges;
+          shieldCharges = Math.min(powerupDefs.shield.max, shieldCharges + 1);
+          const gain = shieldCharges - before;
+          pickupText = gain > 0 ? "Shield +" + gain + " (" + shieldCharges + " total)" : "Shield already full";
         } else if (type === "magnet") {
-          magnetTimer = Math.max(magnetTimer, 12);
+          magnetTimer = Math.max(magnetTimer, powerupDefs.magnet.duration);
+          pickupText = "Magnet active for " + Math.ceil(magnetTimer) + "s";
         } else if (type === "dash") {
-          dashCharges = Math.min(8, dashCharges + 2);
+          const before = dashCharges;
+          dashCharges = Math.min(powerupDefs.dash.max, dashCharges + 2);
+          const gain = dashCharges - before;
+          pickupText = gain > 0 ? "Dash +" + gain + " (" + dashCharges + " charges)" : "Dash charges full";
         } else if (type === "triple") {
-          tripleJumpTimer = Math.max(tripleJumpTimer, 12);
+          tripleJumpTimer = Math.max(tripleJumpTimer, powerupDefs.triple.duration);
           player.airJumpsLeft = Math.max(player.airJumpsLeft, 2);
+          pickupText = "Triple Jump active for " + Math.ceil(tripleJumpTimer) + "s";
         }
         combatBonusScore += 120;
+        if (pickupText) showPowerToast(type, pickupText);
       }
 
       function updatePlatforms(dt) {
@@ -1192,18 +1833,113 @@
         spawnSparkBurst(cx, cy, "#ffd868", 7);
       }
 
+      function getActivePowerEntries() {
+        const entries = [];
+        if (shieldCharges > 0) {
+          entries.push({
+            type: "shield",
+            name: powerupDefs.shield.name,
+            value: shieldCharges + (shieldCharges === 1 ? " charge" : " charges"),
+            ratio: shieldCharges / powerupDefs.shield.max,
+            color: powerupColors.shield
+          });
+        }
+        if (magnetTimer > 0) {
+          entries.push({
+            type: "magnet",
+            name: powerupDefs.magnet.name,
+            value: Math.ceil(magnetTimer) + "s",
+            ratio: magnetTimer / powerupDefs.magnet.duration,
+            color: powerupColors.magnet
+          });
+        }
+        if (dashCharges > 0) {
+          entries.push({
+            type: "dash",
+            name: powerupDefs.dash.name,
+            value: dashCharges + (dashCharges === 1 ? " charge" : " charges"),
+            ratio: dashCharges / powerupDefs.dash.max,
+            color: powerupColors.dash
+          });
+        }
+        if (tripleJumpTimer > 0) {
+          entries.push({
+            type: "triple",
+            name: powerupDefs.triple.name,
+            value: Math.ceil(tripleJumpTimer) + "s",
+            ratio: tripleJumpTimer / powerupDefs.triple.duration,
+            color: powerupColors.triple
+          });
+        }
+        return entries;
+      }
+
+      function updatePowerPanel(entries, force = false) {
+        const signature = entries.map((entry) => {
+          return entry.type + ":" + entry.value + ":" + Math.round(clamp(entry.ratio, 0, 1) * 100);
+        }).join("|");
+        if (!force && signature === powerPanelSignature) return;
+        powerPanelSignature = signature;
+
+        if (!entries.length) {
+          powerPanelEl.innerHTML = "<div class=\"power-empty\">No active powers</div>";
+          return;
+        }
+
+        powerPanelEl.innerHTML = entries.map((entry) => {
+          const fillPct = Math.round(clamp(entry.ratio, 0, 1) * 100);
+          return "<div class=\"power-card\" style=\"--pc: " + entry.color + "\">"
+            + "<div class=\"power-top\">"
+            + "<span class=\"power-name\">" + entry.name + "</span>"
+            + "<span class=\"power-value\">" + entry.value + "</span>"
+            + "</div>"
+            + "<div class=\"power-bar\"><span class=\"power-fill\" style=\"width:" + fillPct + "%\"></span></div>"
+            + "</div>";
+        }).join("");
+      }
+
+      function showPowerToast(type, message) {
+        const color = powerupColors[type] || "#7ce8ff";
+        powerToastEl.textContent = message;
+        powerToastEl.style.setProperty("--toast-accent", color);
+        powerToastEl.style.setProperty("--toast-border", hexToRgba(color, 0.7));
+        powerToastEl.style.setProperty("--toast-bg", hexToRgba(color, 0.2));
+        powerToastDuration = 1.8;
+        powerToastTimer = powerToastDuration;
+        powerToastEl.style.setProperty("--toast-progress", "1");
+        powerToastEl.classList.add("show");
+      }
+
+      function updatePowerToast(dt) {
+        if (powerToastTimer <= 0) return;
+        powerToastTimer = Math.max(0, powerToastTimer - dt);
+        const ratio = powerToastDuration > 0 ? powerToastTimer / powerToastDuration : 0;
+        powerToastEl.style.setProperty("--toast-progress", String(clamp(ratio, 0, 1)));
+        if (powerToastTimer === 0) {
+          powerToastEl.classList.remove("show");
+        }
+      }
+
+      function resetPowerFeedback() {
+        powerToastTimer = 0;
+        powerToastDuration = 0;
+        powerPanelSignature = "";
+        powerToastEl.classList.remove("show");
+        powerToastEl.style.setProperty("--toast-progress", "1");
+      }
+
       function updateHUD(distanceMeters, biomeIndex) {
         const distanceScore = Math.floor(distanceMeters);
         const lifeBonus = lives * scoreRules.lifeBonus;
         totalScore = distanceScore + baseCoinScore + comboBonusScore + combatBonusScore + lifeBonus;
+        const shownRunTime = runFinished && finishTime !== null ? finishTime : runTime;
 
-        const powerStates = [];
-        if (shieldCharges > 0) powerStates.push("Shield:" + shieldCharges);
-        if (magnetTimer > 0) powerStates.push("Magnet:" + Math.ceil(magnetTimer));
-        if (dashCharges > 0) powerStates.push("Dash:" + dashCharges);
-        if (tripleJumpTimer > 0) powerStates.push("Triple:" + Math.ceil(tripleJumpTimer));
+        const powerEntries = getActivePowerEntries();
+        const powerStates = powerEntries.map((entry) => entry.name + " " + entry.value);
 
         distanceEl.textContent = Math.floor(Math.max(0, distanceMeters)) + " m";
+        runTimeEl.textContent = formatTime(shownRunTime);
+        bestTimeEl.textContent = bestTimeForSeed === null ? "--:--.--" : formatTime(bestTimeForSeed);
         scoreEl.textContent = String(totalScore);
         speedEl.textContent = String(Math.floor(Math.abs(player.vx)));
         coinsEl.textContent = String(collectedCoins);
@@ -1213,6 +1949,7 @@
         seedValueEl.textContent = String(currentSeed);
         powersEl.textContent = powerStates.length ? powerStates.join(" | ") : "-";
         inputEl.textContent = lastInputMode;
+        updatePowerPanel(powerEntries);
       }
 
       function resetGame(options = {}) {
@@ -1221,6 +1958,7 @@
         } else {
           setWorldSeed(currentSeed, { syncInput: false });
         }
+        rebuildStarField();
 
         platforms.length = 0;
         coins.length = 0;
@@ -1229,6 +1967,8 @@
         projectiles.length = 0;
         powerups.length = 0;
         particles.length = 0;
+        nextPlatformId = 1;
+        safePlatformId = null;
 
         maxX = player.x;
         safePoint = { x: player.x, y: player.y };
@@ -1239,6 +1979,10 @@
         lives = maxLives;
         gameOver = false;
         invulnTimer = 0;
+        runTime = 0;
+        finishTime = null;
+        runFinished = false;
+        goal = null;
 
         collectedCoins = 0;
         baseCoinScore = 0;
@@ -1259,6 +2003,7 @@
         shakeTime = 0;
         shakeStrength = 0;
         respawnControlLock = 0;
+        resetPowerFeedback();
 
         player.x = 80;
         player.y = 420;
@@ -1283,21 +2028,26 @@
         worldTime = 0;
 
         seedStart();
-        ensureWorldAhead();
+        generateCourseTo(levelEndX + levelBuildPaddingPx);
+        setupGoal();
+        ensureRespawnAnchor();
         updateHUD(0, 0);
+        updatePowerPanel(getActivePowerEntries(), true);
       }
 
       function update(dt) {
         const { move, jumpHeld, dashHeld, restartHeld, newSeedHeld } = getInput();
         worldTime += dt;
+        updatePowerToast(dt);
 
         const restartPressed = restartHeld && !prevRestartHeld;
         prevRestartHeld = restartHeld;
         const newSeedPressed = newSeedHeld && !prevNewSeedHeld;
         prevNewSeedHeld = newSeedHeld;
 
-        const distanceNow = distanceForX(maxX);
-        const difficultyNow = difficultyForMeters(distanceNow);
+        const playerMeters = Math.min(world.levelLengthMeters, distanceForX(player.x));
+        const distanceNow = Math.min(world.levelLengthMeters, distanceForX(maxX));
+        const difficultyNow = difficultyForMeters(playerMeters);
         const biomeIndexNow = biomeIndexForX(player.x);
         updateAudio(difficultyNow, biomeIndexNow);
 
@@ -1307,6 +2057,8 @@
           updateHUD(distanceNow, biomeIndexNow);
           return;
         }
+
+        runTime += dt;
 
         if (invulnTimer > 0) invulnTimer = Math.max(0, invulnTimer - dt);
         if (respawnControlLock > 0) respawnControlLock = Math.max(0, respawnControlLock - dt);
@@ -1424,6 +2176,7 @@
             } else {
               safeX = groundPlatform.x + (groundPlatform.w - player.w) * 0.5;
             }
+            safePlatformId = groundPlatform.id;
             safePoint = { x: safeX, y: player.y };
           }
 
@@ -1514,6 +2267,10 @@
           }
         }
 
+        if (playerReachedGoal()) {
+          completeRun();
+        }
+
         if (tripleJumpTimer <= 0 && player.airJumpsLeft > 1) {
           player.airJumpsLeft = 1;
         }
@@ -1522,7 +2279,7 @@
           loseLife({ allowShield: false, ignoreInvuln: true });
         }
 
-        maxX = Math.max(maxX, player.x);
+        maxX = Math.max(maxX, Math.min(player.x, levelEndX));
         camera.x += (player.x - width * 0.34 - camera.x) * Math.min(1, dt * 5.2);
         camera.y = 0;
 
@@ -1536,10 +2293,9 @@
           camera.shakeY = 0;
         }
 
-        ensureWorldAhead();
         cullWorld();
 
-        const meters = distanceForX(maxX);
+        const meters = Math.min(world.levelLengthMeters, distanceForX(maxX));
         const currentBiomeIndex = biomeIndexForX(player.x);
         updateHUD(meters, currentBiomeIndex);
       }
@@ -1554,12 +2310,19 @@
         ctx.fillStyle = sky;
         ctx.fillRect(0, 0, width, height);
 
-        ctx.globalAlpha = 0.6;
-        for (let i = 0; i < 70; i += 1) {
-          const px = ((i * 173 + 37 - camera.x * 0.08 + camera.shakeX * 0.2) % (width + 80)) - 40;
-          const py = (i * 67) % (height * 0.75);
-          ctx.fillStyle = i % 9 === 0 ? biome.star : "#ffffff";
-          ctx.fillRect(px, py, 2, 2);
+        if (!starField.length) rebuildStarField();
+        for (let i = 0; i < starField.length; i += 1) {
+          const s = starField[i];
+          const scroll = (camera.x + camera.shakeX * 0.2) * s.depth;
+          let sx = s.x - (scroll % starWrap);
+          if (sx < -30) sx += starWrap;
+          if (sx > width + 30) continue;
+
+          const twinkle = 0.62 + Math.sin(worldTime * s.twinkleSpeed + s.twinklePhase) * 0.38;
+          const sy = s.y + Math.sin(worldTime * 0.35 + s.twinklePhase) * 0.9;
+          ctx.globalAlpha = clamp(s.alpha * twinkle, 0.12, 1);
+          ctx.fillStyle = s.useBiomeTint ? biome.star : "#ffffff";
+          ctx.fillRect(sx, sy, s.size, s.size);
         }
         ctx.globalAlpha = 1;
 
@@ -1611,6 +2374,39 @@
             ctx.fillRect(sx + 4, sy + 7, p.w - 8, 2);
           }
         }
+      }
+
+      function drawGoal() {
+        if (!goal) return;
+        const sx = worldToScreenX(goal.x);
+        const sy = worldToScreenY(goal.y);
+        if (sx < -80 || sx > width + 80 || sy < -220 || sy > height + 120) return;
+
+        const biome = biomeForX(goal.x);
+        const glow = ctx.createRadialGradient(sx, sy - goal.h * 0.45, 8, sx, sy - goal.h * 0.45, 66);
+        glow.addColorStop(0, hexToRgba(biome.accent, 0.52));
+        glow.addColorStop(1, hexToRgba(biome.accent, 0));
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(sx, sy - goal.h * 0.45, 66, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#e9eef7";
+        ctx.fillRect(sx - 2, sy - goal.poleH, 4, goal.poleH);
+
+        const wave = Math.sin(worldTime * 4.2) * 3.4;
+        ctx.fillStyle = biome.accent;
+        ctx.beginPath();
+        ctx.moveTo(sx + 2, sy - goal.poleH + 8);
+        ctx.lineTo(sx + 34, sy - goal.poleH + 14 + wave);
+        ctx.lineTo(sx + 2, sy - goal.poleH + 24);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = "#f4f7ff";
+        ctx.font = "700 11px \"IBM Plex Mono\", monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("FINISH", sx, sy - goal.poleH - 8);
       }
 
       function drawSpikes() {
@@ -1694,22 +2490,71 @@
           const sy = worldToScreenY(e.y);
           if (sx < -80 || sx > width + 80 || sy < -80 || sy > height + 80) continue;
 
-          const color = biomes[e.biome].drone;
-          ctx.fillStyle = color;
+          const flap = Math.sin(worldTime * 22 + e.phase) * 2.4;
+          const bodyW = e.r * 2.05;
+          const bodyH = e.r * 1.35;
+          const facing = Math.sin(worldTime * e.speed + e.phase) >= 0 ? 1 : -1;
+          const wingY = sy - e.r * 0.85 + flap;
+
+          ctx.fillStyle = "rgba(225, 245, 255, 0.58)";
           ctx.beginPath();
-          ctx.arc(sx, sy, e.r, 0, Math.PI * 2);
+          ctx.ellipse(sx - 6, wingY, e.r * 0.62, e.r * 0.46, -0.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.ellipse(sx + 6, wingY, e.r * 0.62, e.r * 0.46, 0.5, 0, Math.PI * 2);
           ctx.fill();
 
-          ctx.fillStyle = "#0e1528";
+          ctx.fillStyle = "#f5c74f";
           ctx.beginPath();
-          ctx.arc(sx + 4, sy - 2, 4, 0, Math.PI * 2);
+          ctx.ellipse(sx, sy, bodyW * 0.5, bodyH * 0.5, 0, 0, Math.PI * 2);
           ctx.fill();
 
-          ctx.strokeStyle = "rgba(255,255,255,0.35)";
+          ctx.fillStyle = "rgba(32, 28, 26, 0.85)";
+          for (let s = -1; s <= 1; s += 1) {
+            const stripeX = sx + s * e.r * 0.42;
+            ctx.beginPath();
+            ctx.ellipse(stripeX, sy, e.r * 0.18, bodyH * 0.43, 0, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          const headX = sx + facing * e.r * 0.74;
+          const tailX = sx - facing * e.r * 0.95;
+          ctx.fillStyle = "#2f2522";
+          ctx.beginPath();
+          ctx.arc(headX, sy - 1.5, e.r * 0.38, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = "#2f2522";
           ctx.lineWidth = 1.5;
           ctx.beginPath();
-          ctx.moveTo(sx - e.r - 8, sy);
-          ctx.lineTo(sx + e.r + 8, sy);
+          ctx.moveTo(headX + facing * 3, sy - 7);
+          ctx.lineTo(headX + facing * 7, sy - 11);
+          ctx.moveTo(headX + facing * 0.5, sy - 8);
+          ctx.lineTo(headX + facing * 4.5, sy - 12);
+          ctx.stroke();
+
+          ctx.fillStyle = "#ffe7b5";
+          ctx.beginPath();
+          ctx.arc(headX + facing * 2, sy - 2.5, 2, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#120f0f";
+          ctx.beginPath();
+          ctx.arc(headX + facing * 2.5, sy - 2.5, 0.95, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#2a1a16";
+          ctx.beginPath();
+          ctx.moveTo(tailX, sy - 4);
+          ctx.lineTo(tailX - facing * 6.5, sy);
+          ctx.lineTo(tailX, sy + 4);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.28)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.ellipse(sx, sy, bodyW * 0.5, bodyH * 0.5, 0, 0, Math.PI * 2);
           ctx.stroke();
         }
       }
@@ -1895,8 +2740,19 @@
       }
 
       function render() {
+        updateGameplayTopInset();
+        const viewportTop = gameplayTopInset;
+        const viewportHeight = Math.max(1, height - viewportTop);
+
+        ctx.clearRect(0, 0, width, height);
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, viewportTop, width, viewportHeight);
+        ctx.clip();
+
         drawBackground();
         drawPlatforms();
+        drawGoal();
         drawSpikes();
         drawPowerups();
         drawCoins();
@@ -1912,24 +2768,34 @@
         sea.addColorStop(1, hexToRgba(biome.accent, 0.28));
         ctx.fillStyle = sea;
         ctx.fillRect(0, hazardY - 30, width, 60);
+        ctx.restore();
 
         if (gameOver) {
           ctx.fillStyle = "rgba(4, 10, 18, 0.72)";
-          ctx.fillRect(0, 0, width, height);
+          ctx.fillRect(0, viewportTop, width, viewportHeight);
+
+          const centerY = viewportTop + viewportHeight * 0.5;
+          const finished = runFinished && finishTime !== null;
 
           ctx.textAlign = "center";
-          ctx.fillStyle = "#ff9e4f";
+          ctx.fillStyle = finished ? "#7be7ff" : "#ff9e4f";
           ctx.font = "800 56px Syne, sans-serif";
-          ctx.fillText("GAME OVER", width / 2, height * 0.42);
+          ctx.fillText(finished ? "FINISHED" : "GAME OVER", width / 2, centerY - 72);
 
           ctx.fillStyle = "#f4f3ed";
           ctx.font = "600 20px \"IBM Plex Mono\", monospace";
-          ctx.fillText("R/Enter/Start: replay seed | N/Y: random seed", width / 2, height * 0.5);
+          ctx.fillText("R/Enter/Start: replay seed | N/Y: random seed", width / 2, centerY - 8);
 
           ctx.font = "600 16px \"IBM Plex Mono\", monospace";
-          ctx.fillText("Final score: " + totalScore, width / 2, height * 0.56);
-          ctx.fillText("Seed: " + currentSeed + " (share this to replay the same level)", width / 2, height * 0.6);
-          ctx.fillText("Or use the seed box in the HUD and press Play", width / 2, height * 0.64);
+          if (finished) {
+            ctx.fillText("Time: " + formatTime(finishTime), width / 2, centerY + 40);
+            ctx.fillText("Best: " + (bestTimeForSeed === null ? "--:--.--" : formatTime(bestTimeForSeed)), width / 2, centerY + 74);
+            ctx.fillText("Seed " + currentSeed + " complete. Replay to beat your best.", width / 2, centerY + 108);
+          } else {
+            ctx.fillText("Final score: " + totalScore, width / 2, centerY + 40);
+            ctx.fillText("Seed: " + currentSeed + " (share this to replay the same level)", width / 2, centerY + 74);
+            ctx.fillText("Or use the seed box in the info panel and press Play", width / 2, centerY + 108);
+          }
         }
       }
 
@@ -1992,6 +2858,25 @@
           restartWithEnteredSeed();
         }
       });
+
+      if (infoToggleBtn && infoDrawerEl) {
+        setInfoPanelOpen(false);
+
+        infoToggleBtn.addEventListener("click", () => {
+          setInfoPanelOpen(infoDrawerEl.hidden);
+        });
+
+        window.addEventListener("keydown", (e) => {
+          if (e.code === "Escape" && !infoDrawerEl.hidden) {
+            setInfoPanelOpen(false);
+            return;
+          }
+          if (e.code !== "KeyI") return;
+          if (document.activeElement === seedInputEl) return;
+          e.preventDefault();
+          setInfoPanelOpen(infoDrawerEl.hidden);
+        });
+      }
 
       const initialSeed = readSeedFromUrl();
       if (initialSeed === null) setWorldSeed(randomSeed32());
