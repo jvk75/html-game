@@ -137,12 +137,27 @@
       letter-spacing: 0.04em;
     }
 
+    .hud-actions {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+      pointer-events: auto;
+    }
+
+    .help-btn {
+      background: linear-gradient(180deg, #98f099, #60ca6a 56%, #3f9f4a);
+    }
+
     .info-btn:hover {
       filter: brightness(1.05);
     }
 
     .info-btn[aria-expanded="true"] {
       background: linear-gradient(180deg, #ffe998, #ffd767 56%, #f7b82d);
+    }
+
+    .help-btn[aria-expanded="true"] {
+      background: linear-gradient(180deg, #aaf5ab, #72dc7b 56%, #48b95a);
     }
 
     .info-drawer {
@@ -356,6 +371,94 @@
       transform: translate(-50%, 0) scale(1);
     }
 
+    .instructions-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      display: grid;
+      place-items: center;
+      background: rgba(7, 22, 46, 0.64);
+      backdrop-filter: blur(2px);
+      pointer-events: auto;
+      padding: 14px;
+    }
+
+    .instructions-modal[hidden] {
+      display: none;
+    }
+
+    .instructions-card {
+      width: min(720px, 96vw);
+      border: 3px solid #0a2c5b;
+      border-bottom-width: 5px;
+      background: linear-gradient(180deg, #2f9af0, #1b75ce 54%, #0f5eab);
+      box-shadow: 0 2px 0 #072346, inset 0 1px 0 #7fd0ff96;
+      padding: 12px;
+      color: #f4fbff;
+    }
+
+    .instructions-title {
+      margin: 0 0 10px;
+      font: 400 16px/1.1 "Press Start 2P", cursive;
+      letter-spacing: 0.04em;
+      color: #ffe56f;
+      text-shadow: 2px 2px 0 #1f2b58;
+    }
+
+    .instructions-subtitle {
+      margin: 0 0 10px;
+      font: 600 12px/1.35 "IBM Plex Mono", monospace;
+      color: #d8f0ff;
+    }
+
+    .instructions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .instructions-block {
+      border: 1px solid #07396a;
+      background: #103a6ea9;
+      padding: 8px;
+    }
+
+    .instructions-label {
+      margin: 0 0 8px;
+      font: 600 10px/1 "IBM Plex Mono", monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #ffe66d;
+    }
+
+    .instructions-lines {
+      margin: 0;
+      font: 600 11px/1.45 "IBM Plex Mono", monospace;
+      color: #e6f4ff;
+      text-shadow: 1px 1px 0 #1a335c;
+    }
+
+    .instructions-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .instructions-start {
+      border: 2px solid #0a2c5b;
+      background: #ffd965;
+      color: #223761;
+      padding: 8px 11px;
+      font: 700 12px/1 "IBM Plex Mono", monospace;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .instructions-start:hover {
+      background: #ffe287;
+    }
+
     @media (max-width: 1180px) {
       .hud-main {
         grid-template-columns: repeat(4, minmax(92px, 1fr));
@@ -408,6 +511,10 @@
         margin-top: 6px;
       }
 
+      .instructions-grid {
+        grid-template-columns: 1fr;
+      }
+
       .seed-input {
         width: 100%;
       }
@@ -423,14 +530,17 @@
   <section class="ui-shell" aria-live="polite">
     <header class="ui-header">
       <div class="hud-main">
-        <h1 class="hud-title"><span class="hud-title-main">NEON RUN</span><span class="hud-title-sub">4000M TIME TRIAL</span></h1>
+        <h1 class="hud-title"><span class="hud-title-main">NEON RUN</span><span class="hud-title-sub">2000M TIME TRIAL</span></h1>
         <div class="hud-stat"><span class="hud-label">Dist</span><span id="distance" class="hud-value">0 m</span></div>
         <div class="hud-stat"><span class="hud-label">Time</span><span id="run-time" class="hud-value">00:00.00</span></div>
         <div class="hud-stat"><span class="hud-label">Lives</span><span id="lives" class="hud-value">5</span></div>
         <div class="hud-stat"><span class="hud-label">Coins</span><span id="coins" class="hud-value">0</span></div>
         <div class="hud-stat"><span class="hud-label">Score</span><span id="score" class="hud-value">0</span></div>
       </div>
-      <button id="info-toggle" class="info-btn" type="button" aria-expanded="false" aria-controls="info-drawer" title="Show info">i</button>
+      <div class="hud-actions">
+        <button id="instructions-toggle" class="info-btn help-btn" type="button" aria-expanded="true" aria-controls="instructions-modal" title="Show instructions">?</button>
+        <button id="info-toggle" class="info-btn" type="button" aria-expanded="false" aria-controls="info-drawer" title="Show info">i</button>
+      </div>
     </header>
 
     <aside id="info-drawer" class="info-drawer" hidden>
@@ -464,8 +574,8 @@
         </div>
       </section>
 
-      <section class="drawer-col">
-        <h2 class="col-title">Controls</h2>
+      <section class="menu-card">
+        <h2 class="menu-title">Controls</h2>
         <p class="controls">
           Move A/D or Left/Right | Jump W/Up/Space | Dash Shift/F (RB/X)<br />
           Controller: Left Stick or D-Pad + A | Restart: R replay, N random seed
@@ -473,6 +583,36 @@
       </section>
     </aside>
   </section>
+  <div id="instructions-modal" class="instructions-modal">
+    <section class="instructions-card" role="dialog" aria-modal="true" aria-labelledby="instructions-title">
+      <h2 id="instructions-title" class="instructions-title">NEON RUN</h2>
+      <p class="instructions-subtitle">Reach the 2000m finish gate as fast as possible. Same seed means same level.</p>
+      <div class="instructions-grid">
+        <article class="instructions-block">
+          <h3 class="instructions-label">Movement</h3>
+          <p class="instructions-lines">
+            Move: A/D or Left/Right<br />
+            Jump: W, Up, Space (double jump base)<br />
+            Dash: Shift/F (RB/X on controller)<br />
+            Controller: Left Stick or D-Pad + A
+          </p>
+        </article>
+        <article class="instructions-block">
+          <h3 class="instructions-label">Powerups</h3>
+          <p class="instructions-lines">
+            Shield: blocks one hit<br />
+            Magnet: pulls nearby coins<br />
+            Dash: adds dash charges<br />
+            Triple: grants extra mid-air jump<br />
+            Every 20 coins gives +1 life
+          </p>
+        </article>
+      </div>
+      <div class="instructions-actions">
+        <button id="instructions-start" class="instructions-start" type="button">Start Run</button>
+      </div>
+    </section>
+  </div>
   <div id="power-toast" class="power-toast" aria-live="polite"></div>
 
   <script>
@@ -496,6 +636,9 @@
       const inputEl = document.getElementById("input");
       const powerPanelEl = document.getElementById("power-panel");
       const powerToastEl = document.getElementById("power-toast");
+      const instructionsToggleBtn = document.getElementById("instructions-toggle");
+      const instructionsModalEl = document.getElementById("instructions-modal");
+      const instructionsStartBtn = document.getElementById("instructions-start");
       const infoToggleBtn = document.getElementById("info-toggle");
       const infoDrawerEl = document.getElementById("info-drawer");
       const uiHeaderEl = document.querySelector(".ui-header");
@@ -507,7 +650,7 @@
         maxY: 560,
         biomeSpanMeters: 500,
         metersToPx: 10,
-        levelLengthMeters: 4000,
+        levelLengthMeters: 2000,
         finiteCourse: true
       };
       const levelStartX = 80;
@@ -684,7 +827,9 @@
       let finishTime = null;
       let runFinished = false;
       let runTimerStarted = false;
+      let instructionsOpen = true;
       let bestTimeForSeed = null;
+      let nextLifeCoinThreshold = 20;
       let goal = null;
 
       let collectedCoins = 0;
@@ -843,6 +988,17 @@
         if (!infoDrawerEl || !infoToggleBtn) return;
         infoDrawerEl.hidden = !open;
         infoToggleBtn.setAttribute("aria-expanded", open ? "true" : "false");
+        updateGameplayTopInset();
+      }
+
+      function setInstructionsOpen(open) {
+        instructionsOpen = open;
+        if (instructionsModalEl) instructionsModalEl.hidden = !open;
+        if (instructionsToggleBtn) instructionsToggleBtn.setAttribute("aria-expanded", open ? "true" : "false");
+        if (open) setInfoPanelOpen(false);
+        keys.clear();
+        prevJumpHeld = false;
+        prevDashHeld = false;
         updateGameplayTopInset();
       }
 
@@ -1759,6 +1915,12 @@
         collectedCoins += 1;
         baseCoinScore += scoreRules.coinBonus;
 
+        while (collectedCoins >= nextLifeCoinThreshold) {
+          lives = Math.min(99, lives + 1);
+          nextLifeCoinThreshold += 20;
+          showPowerToast("shield", "+1 Life (" + lives + ")");
+        }
+
         if (comboTimer > 0) comboCount += 1;
         else comboCount = 1;
 
@@ -1922,6 +2084,7 @@
         runFinished = false;
         runTimerStarted = false;
         goal = null;
+        nextLifeCoinThreshold = 20;
 
         collectedCoins = 0;
         baseCoinScore = 0;
@@ -1993,6 +2156,11 @@
         if (gameOver) {
           if (newSeedPressed) resetGame({ seed: randomSeed32() });
           else if (restartPressed) resetGame();
+          updateHUD(distanceNow, biomeIndexNow);
+          return;
+        }
+
+        if (instructionsOpen) {
           updateHUD(distanceNow, biomeIndexNow);
           return;
         }
@@ -2846,6 +3014,12 @@
       window.addEventListener("keydown", (e) => {
         const typingInField = e.target === seedInputEl;
         if (typingInField) return;
+        if (instructionsOpen && (e.code === "Space" || e.code === "Enter" || e.code === "Escape")) {
+          e.preventDefault();
+          setInstructionsOpen(false);
+          tryInitAudio();
+          return;
+        }
         if (blockedKeys.has(e.code)) e.preventDefault();
         tryInitAudio();
         keys.add(e.code);
@@ -2887,14 +3061,29 @@
         }
       });
 
+      if (instructionsToggleBtn) {
+        instructionsToggleBtn.addEventListener("click", () => {
+          setInstructionsOpen(true);
+        });
+      }
+
+      if (instructionsStartBtn) {
+        instructionsStartBtn.addEventListener("click", () => {
+          setInstructionsOpen(false);
+          tryInitAudio();
+        });
+      }
+
       if (infoToggleBtn && infoDrawerEl) {
         setInfoPanelOpen(false);
 
         infoToggleBtn.addEventListener("click", () => {
+          if (instructionsOpen) setInstructionsOpen(false);
           setInfoPanelOpen(infoDrawerEl.hidden);
         });
 
         window.addEventListener("keydown", (e) => {
+          if (instructionsOpen) return;
           if (e.code === "Escape" && !infoDrawerEl.hidden) {
             setInfoPanelOpen(false);
             return;
@@ -2911,6 +3100,7 @@
       else setWorldSeed(initialSeed);
       resize();
       resetGame();
+      setInstructionsOpen(true);
       requestAnimationFrame(loop);
     })();
   </script>
