@@ -1757,42 +1757,139 @@
       function drawPlayer() {
         const sx = worldToScreenX(player.x);
         const sy = worldToScreenY(player.y);
+        const visualYOffset = 10;
+        const syVisual = sy + visualYOffset;
 
         ctx.save();
-        ctx.translate(sx + player.w / 2, sy + player.h / 2);
+        ctx.translate(sx + player.w / 2, syVisual + player.h / 2);
         const tilt = clamp(player.vx / 500, -0.12, 0.12);
         ctx.rotate(tilt);
 
         const stretch = clamp(Math.abs(player.vy) / 1250, 0, 0.22);
         const squash = player.landSquash;
         ctx.scale(1 + squash - stretch * 0.3, 1 - squash + stretch);
+        const run = clamp(Math.abs(player.vx) / 360, 0, 1);
+        const phase = worldTime * (7 + run * 9);
+        const stride = Math.sin(phase) * 5.6 * run;
+        const bounce = Math.abs(Math.sin(phase)) * run * 1.2;
+        const blink = Math.sin(worldTime * 2.2) > 0.96;
+        const invulnFlash = invulnTimer > 0 && Math.sin(worldTime * 30) > 0;
+        const dir = player.facing >= 0 ? 1 : -1;
 
-        ctx.fillStyle = "#ff9e4f";
-        if (invulnTimer > 0 && Math.sin(worldTime * 30) > 0) ctx.fillStyle = "#ffd3aa";
-        roundRect(ctx, -player.w / 2, -player.h / 2, player.w, player.h, 10);
+        const fur = invulnFlash ? "#ffd6ac" : "#f49b55";
+        const furDark = invulnFlash ? "#d7a475" : "#b5662f";
+        const furLight = invulnFlash ? "#fff4dd" : "#ffe6c5";
+        const paw = "#3f2313";
+        const eye = "#1f120b";
+
+        const bodyY = -4 - bounce;
+
+        ctx.save();
+        ctx.translate(-dir * 11, bodyY + 1);
+        ctx.rotate(dir * (-0.38 + stride * 0.02));
+        ctx.fillStyle = furDark;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 9.5, 5.2, 0, 0, Math.PI * 2);
         ctx.fill();
-
-        ctx.fillStyle = "#251307";
-        const eyeX = player.facing > 0 ? 6 : -10;
-        roundRect(ctx, eyeX, -8, 6, 6, 2);
+        ctx.fillStyle = furLight;
+        ctx.beginPath();
+        ctx.ellipse(dir * 5.8, 0, 3.2, 2.2, 0, 0, Math.PI * 2);
         ctx.fill();
-
         ctx.restore();
 
-        if (!player.onGround) {
-          ctx.strokeStyle = "rgba(83, 242, 255, 0.4)";
-          ctx.lineWidth = 2;
+        ctx.strokeStyle = furDark;
+        ctx.lineWidth = 4.2;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(-5.5, bodyY + 7);
+        ctx.lineTo(-6.6 + stride * 0.32, bodyY + 13.5);
+        ctx.lineTo(-7.2 - stride * 0.45, bodyY + 18.2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(5.5, bodyY + 7);
+        ctx.lineTo(6.6 - stride * 0.32, bodyY + 13.5);
+        ctx.lineTo(7.2 + stride * 0.45, bodyY + 18.2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-1.8, bodyY + 7);
+        ctx.lineTo(-2.4 - stride * 0.22, bodyY + 13.2);
+        ctx.lineTo(-2.6 + stride * 0.3, bodyY + 18);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(1.8, bodyY + 7);
+        ctx.lineTo(2.4 + stride * 0.22, bodyY + 13.2);
+        ctx.lineTo(2.6 - stride * 0.3, bodyY + 18);
+        ctx.stroke();
+
+        ctx.fillStyle = paw;
+        ctx.beginPath();
+        ctx.arc(-7.2 - stride * 0.45, bodyY + 19, 2.3, 0, Math.PI * 2);
+        ctx.arc(7.2 + stride * 0.45, bodyY + 19, 2.3, 0, Math.PI * 2);
+        ctx.arc(-2.6 + stride * 0.3, bodyY + 18.8, 2, 0, Math.PI * 2);
+        ctx.arc(2.6 - stride * 0.3, bodyY + 18.8, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = fur;
+        roundRect(ctx, -11, bodyY - 5, 22, 15, 7);
+        ctx.fill();
+        ctx.fillStyle = furLight;
+        roundRect(ctx, -6.5, bodyY + 0.8, 13, 6.2, 3);
+        ctx.fill();
+
+        const headX = dir * 8.2;
+        const headY = bodyY - 9.3;
+        ctx.fillStyle = fur;
+        ctx.beginPath();
+        ctx.arc(headX, headY, 8.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = furDark;
+        ctx.beginPath();
+        ctx.moveTo(headX - dir * 4.2, headY - 5.3);
+        ctx.lineTo(headX - dir * 8.8, headY - 10.6);
+        ctx.lineTo(headX - dir * 2.3, headY - 10.2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(headX + dir * 1.8, headY - 5.5);
+        ctx.lineTo(headX + dir * 6.9, headY - 10.8);
+        ctx.lineTo(headX + dir * 3.5, headY - 4.9);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = furLight;
+        ctx.beginPath();
+        ctx.ellipse(headX + dir * 2, headY + 3.2, 5.2, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = eye;
+        if (blink) {
+          ctx.fillRect(headX + dir * 0.8, headY - 1.4, dir * 3.2, 1);
+        } else {
           ctx.beginPath();
-          ctx.moveTo(sx + player.w / 2 - player.vx * 0.02, sy + player.h - 4);
-          ctx.lineTo(sx + player.w / 2, sy + player.h + 10);
-          ctx.stroke();
+          ctx.arc(headX + dir * 2.7, headY - 1.2, 1.1, 0, Math.PI * 2);
+          ctx.fill();
         }
+        ctx.beginPath();
+        ctx.arc(headX + dir * 5.8, headY + 1.4, 1.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = furDark;
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.moveTo(headX + dir * 4.8, headY + 1.2);
+        ctx.lineTo(headX + dir * 8.6, headY - 0.3);
+        ctx.moveTo(headX + dir * 4.9, headY + 2.3);
+        ctx.lineTo(headX + dir * 8.9, headY + 2.5);
+        ctx.stroke();
+
+        ctx.restore();
 
         if (shieldCharges > 0) {
           ctx.strokeStyle = "rgba(124, 232, 255, 0.7)";
           ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.arc(sx + player.w * 0.5, sy + player.h * 0.5, 34 + Math.sin(worldTime * 8) * 2, 0, Math.PI * 2);
+          ctx.arc(sx + player.w * 0.5, syVisual + player.h * 0.5, 34 + Math.sin(worldTime * 8) * 2, 0, Math.PI * 2);
           ctx.stroke();
         }
       }
